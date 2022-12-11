@@ -2,7 +2,6 @@ GM.Name 		= "Cinema"
 GM.Author		= "pixelTail Games"
 GM.Email 		= "contact@pixeltailgames.com"
 GM.Website 		= "www.pixeltailgames.com"
-GM.Version 		= "1.2"
 GM.TeamBased 	= false
 
 -- Enable sandbox functionalities
@@ -17,7 +16,8 @@ include( "sh_load.lua" )
 
 include( "player_shd.lua" )
 include( "player_class/player_lobby.lua" )
-include( "translations.lua" )
+include( "i18n.lua" )
+include( "credits.lua" )
 
 Loader.Load( "extensions" )
 Loader.Load( "modules" )
