@@ -55,7 +55,7 @@ loadMap(true) -- Backward compatibility
 	 Return true if this player should take damage from this attacker
 -----------------------------------------------------------]]
 function GM:PlayerShouldTakeDamage( ply, attacker )
-	return false
+	return true
 end
 
 --[[---------------------------------------------------------

@@ -62,6 +62,14 @@ function PLAYER:Loadout()
 	self.Player:RemoveAllAmmo()
 	self.Player:SwitchToDefaultWeapon()
 
+        self.Player:Give("weapon_popcorn")
+        self.Player:Give("weapon_cat")
+        self.Player:Give("weapon_hands")
+        self.Player:Give("weapon_vape_custom")
+        self.Player:Give("weapon_vape_helium")
+        self.Player:Give("weapon_vape_american")
+        self.Player:Give("wos_fortnite_dancer")
+
 end
 
 --
