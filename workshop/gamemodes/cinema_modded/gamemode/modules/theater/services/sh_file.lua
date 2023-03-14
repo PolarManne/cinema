@@ -6,6 +6,7 @@
 local SERVICE = {}
 SERVICE.Name = "File"
 SERVICE.IsTimed = true
+SERVICE.Dependency = DEPENDENCY_COMPLETE
 SERVICE.ExtentedVideoInfo = true
 
 --[[
@@ -44,7 +45,20 @@ if (CLIENT) then
 	local HTML_BASE = [[
 		<html>
 		<head></head>
-		<body style="margin:0px;background-color:black;overflow:hidden;">
+		<body>
+			<style>
+				body {
+					margin:0px;
+					background-color:black;
+					overflow:hidden;
+				}
+
+				video {
+					height: 100%;
+					width: 100%;
+				}
+			</style>
+
 			<div id="player-wrapper"></div>
 		
 			<script>
@@ -53,8 +67,6 @@ if (CLIENT) then
 				video.autoplay = true;
 				video.controls = true;
 				video.muted = false;
-				video.height = window.innerHeight;
-				video.width = window.innerWidth;
 				
 				document.getElementById("player-wrapper").appendChild(video);
 			</script>

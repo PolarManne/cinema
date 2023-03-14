@@ -6,6 +6,10 @@ THEATER_PRIVILEGED = 4 	-- Theater restricted to privileged players
 QUEUE_VOTEUPDOWN = 1
 QUEUE_CHRONOLOGICAL = 2
 
+DEPENDENCY_NONE = 0		-- Client needs nothing
+DEPENDENCY_PARTIAL = 1 	-- Client only needs x86-64 Beta
+DEPENDENCY_COMPLETE = 2 	-- Client also needs CEF Codec Fix
+
 hook.Add( "Think", "TheaterThink", function()
 	for _, Theater in pairs(theater.GetTheaters()) do
 		Theater:Think()
