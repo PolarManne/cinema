@@ -5,13 +5,13 @@
         You can edit this code.But you cant upload anymore.
 ]]
 
--- Last update : 2023/2/4
+-- Last update : 2023/8/4
 
 local SERVICE = {}
 
 SERVICE.Name = "哔哩哔哩" -- 服务名称
 SERVICE.IsTimed = true -- 是否是计时视频
-SERVICE.Dependency = DEPENDENCY_PARTIAL
+SERVICE.Dependency = DEPENDENCY_COMPLETE
 
 -- 目前支持AV号与BV号
 
@@ -55,15 +55,15 @@ end
 
 function SERVICE:GetURLInfo( url )
     local info = {}
-    local p
+    local bp
     if url.query ~= nil then
-        p = url.query["p"] or 1
+        bp = url.query["p"] or 1
     else
-        p = 1
+        bp = 1
     end
     
     if url.host:match("www.bilibili.com") or url.host:match("b23.tv") then
-        info.Data = string.match(url.path,"BV[%w*]+").." "..p
+        info.Data = string.match(url.path,"BV[%w*]+").." "..bp
     end
 
 	return info.Data and info or false
@@ -80,8 +80,7 @@ function SERVICE:GetVideoInfo( d , onSuccess, onFailure )
             end
             local rT = util.JSONToTable(r)
             local data = rT.data
-            local pdata = data.pages[self.p] or data.pages[1]
-    
+            local pdata = data.pages[tonumber(sT[2])] or data.pages[1]
             if data == nil then
                 return onFailure( "Theater_RequestFailed" )
             end

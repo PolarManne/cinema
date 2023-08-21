@@ -5,13 +5,12 @@
         You can edit this code.But you cant upload anymore.
 ]]
 
--- 用前注意：我们不推荐使用av号进行解析，因为会导致加载滞后
--- Last update : 2023/2/5
+-- Last update : 2023/8/4
 
 local SERVICE = {}
 SERVICE.Name = "哔哩哔哩Legacy"
 SERVICE.IsTimed = true
-SERVICE.Dependency = DEPENDENCY_PARTIAL
+SERVICE.Dependency = DEPENDENCY_COMPLETE
 local META_URL = "https://www.bilibili.com/video/%s"
 function SERVICE:Match( url )
     local av = url.host:match("www.bilibili.com") and string.match(url.path,"av[%w*]+")
@@ -59,7 +58,7 @@ function SERVICE:GetVideoInfo( d , onSuccess, onFailure )
             if s == 0 then return onFailure( "Theater_RequestFailed" ) end
             local rT = util.JSONToTable(r)
             local data = rT.data
-            local pdata = data.pages[self.p] or data.pages[1]
+            local pdata = data.pages[tonumber(sT[2])] or data.pages[1]
             if data == nil then return onFailure( "Theater_RequestFailed" ) end
             local info = {}
             info.title = data.title.." ("..sT[2].."p)"

@@ -5,13 +5,13 @@
         You can edit this code.But you cant upload anymore.
 ]]
 
--- Last update : 2023/2/4
+-- Last update : 2023/8/4
 
 local SERVICE = {}
 
 SERVICE.Name = "哔哩哔哩番剧"
 SERVICE.IsTimed = true
-SERVICE.Dependency = DEPENDENCY_PARTIAL
+SERVICE.Dependency = DEPENDENCY_COMPLETE
 
 local META_URL = "https://www.bilibili.com/bangumi/play/ep%s"
 
@@ -23,28 +23,32 @@ if CLIENT then
     local PLAYURL = "https://www.bilibili.com/bangumi/play/ep%s"
 
     local JS = [[
-        var checkerInterval = setInterval(function() {
+        var checkerVideoInterval = setInterval(function() {
 			var player = document.getElementsByTagName('video')[0];
-			if (!!player && player.paused == false && player.readyState == 4) {
-				clearInterval(checkerInterval);
-
-				document.body.style.backgroundColor = "black";
-                
+			if (player&&player.paused != false) {
+                document.getElementsByClassName('squirtle-video-pagefullscreen squirtle-video-item')[0].click();
+				clearInterval(checkerVideoInterval);
 				window.cinema_controller = player;
-
 				exTheater.controllerReady();
 			}
 		}, 50);
+    ]]
+    local fullscreenRequest = [[
+        var checkerFullScreenInterval = setInterval(function(){
+            var IsFullScreen = document.getElementById("bilibili-player-wrap").classList[0].indexOf("video_playerFullScreen")>-1
+            if(!IsFullScreen){
+                document.getElementsByClassName('squirtle-video-pagefullscreen squirtle-video-item')[0].click();
+            }
+        }, 50)    
     ]]
 
     function SERVICE:LoadProvider( vi, p )
         p:OpenURL( PLAYURL:format(vi:Data()) )
         p.OnDocumentReady = function(pnl)
 			self:LoadExFunctions( pnl )
-			pnl:QueueJavascript(JS)
-            timer.Simple(1,function()
-                -- parentElements.fullScreen()
-                pnl:QueueJavascript("document.getElementsByClassName('squirtle-video-pagefullscreen squirtle-video-item')[0].click();")
+            pnl:QueueJavascript(JS)
+            timer.Simple(5,function()
+               pnl:QueueJavascript(fullscreenRequest)
             end)
 		end
     end
@@ -87,26 +91,16 @@ function SERVICE:GetVideoInfo( d , onSuccess, onFailure )
             end
             local rT = util.JSONToTable(r)
             local data = rT.result
-
             if data == nil then
                 return onFailure( "Theater_RequestFailed" )
             end
-
             local info = {}
-            --info.title = data.title
-            --info.duration = v.duration / 1000 + 1
-            --print(data.episodes[2].share_copy)
-            for _,v in pairs(data.episodes) do
+            for k,v in pairs(data.episodes) do
                 if tostring(v.id) == d then
-                    info.title = data.episodes[tonumber(v.title)].share_copy
+                    info.title = data.episodes[k].share_copy
                     info.duration = v.duration / 1000 + 1
-
-                    --print(info.title)
-                    --print(info.duration)
-                    --return onFailure( "Theater_RequestFailed" )
                 end
             end
-
             if onSuccess then
                 pcall(onSuccess, info)
             end
