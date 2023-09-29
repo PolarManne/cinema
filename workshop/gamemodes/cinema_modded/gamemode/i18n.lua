@@ -46,7 +46,7 @@ if CLIENT then
 			Cinema = "CINEMA",
 			Volume = "Volume",
 			Voteskips = "Voteskips",
-			Loading = "Loading...",
+			Loading = "", -- blank so that it doesn't peek out of really small screens
 			Invalid = "[INVALID]",
 			NoVideoPlaying = "No video playing",
 			Cancel = "Cancel",

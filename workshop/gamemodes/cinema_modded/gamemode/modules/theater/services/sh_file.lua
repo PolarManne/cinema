@@ -11,6 +11,7 @@ local validExtensions = {
 	-- Video 
 	["mp4"] = true,
 	["webm"] = true,
+	["mkv"] = true,
 
 	-- Audio
 	["mp3"] = true,

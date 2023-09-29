@@ -102,6 +102,7 @@ function GM:PlayerSpawn( pl )
 
 	-- Set player model
 	hook.Call( "PlayerSetModel", GAMEMODE, pl )
+	pl:SetupHands()
 
 end
 
@@ -116,6 +117,16 @@ function GM:PlayerSetModel( pl )
 	util.PrecacheModel( modelname )
 	pl:SetModel( modelname )
 
+end
+
+function GM:PlayerSetHandsModel( ply, ent )
+   local simplemodel = player_manager.TranslateToPlayerModelName(ply:GetModel())
+   local info = player_manager.TranslatePlayerHands(simplemodel)
+   if info then
+      ent:SetModel(info.model)
+      ent:SetSkin(info.skin)
+      ent:SetBodyGroups(info.body)
+   end
 end
 
 --[[---------------------------------------------------------
