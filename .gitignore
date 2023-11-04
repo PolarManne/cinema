@@ -1,2 +1,4 @@
-kino/*.mp4
-kino/*.mkv
+public/*.mp4
+public/*.mkv
+public/search/kino.html
+public/search/posters/*

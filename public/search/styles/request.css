@@ -108,6 +108,10 @@ h1 {
 .logo-ru {
 	background-image: url(../images/russia.png);
 }
+
+.logo-kino {
+	background-image: url(../images/robert.png);
+}
 .notice {
 	text-align: center;
 	color: rgba(255, 255, 255, 0.44);

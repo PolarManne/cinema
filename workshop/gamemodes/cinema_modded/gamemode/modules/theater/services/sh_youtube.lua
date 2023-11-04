@@ -8,7 +8,7 @@ SERVICE.Dependency = DEPENDENCY_PARTIAL
 local METADATA_URL = "https://www.youtube.com/watch?v=%s"
 
 function SERVICE:Match( url )
-	return url.host and url.host:match("youtu.?be[.com]?")
+	return url.host and url.host:match("yo?u?e?w?tu?.?be[.com]?")
 end
 
 if (CLIENT) then
