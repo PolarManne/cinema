@@ -19,7 +19,7 @@ body {
 
 .header-container {
 	position: absolute;
-	top: 85px;
+	top: 115px;
 	left: 0;
 	right: 0;
 	height: 200px;
@@ -31,10 +31,10 @@ body {
 
 .info-container {
 	position: absolute;
-	top: 276px;
+	top: 760px;
 	left: 140px;
 	right: 140px;
-	bottom: 120px;
+	bottom: 220px;
 	padding: 40px;
 	display: -webkit-box;
 	-webkit-box-pack: start;
@@ -54,25 +54,25 @@ body {
 	-webkit-box-orient: vertical;
 }
 
-.welcome {
-	background-image: url(../images/theaterwelcome.png);
-	background-repeat: no-repeat;
-	width: 660px;
-	height: 171px;
+.robert {
+	width: 900px;
+	object-fit: scale-down;
+	z-index: 1;
 }
 
 .top-curtain {
-	background-image: url(../images/curtaintop.png);
+	background-image: url(images/curtaintop.png);
 	background-repeat: no-repeat;
 	background-size: 100% 100%;
 	background-position: top;
 	width: 100%;
 	height: 80px;
 	position: fixed;
+	z-index: 3;
 }
 
 .left-curtain {
-	background-image: url(../images/curtainleft.png);
+	background-image: url(images/curtainleft.png);
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-position: right;
@@ -80,10 +80,11 @@ body {
 	height: 100%;
 	position: fixed;
 	left: -500px;
+	z-index: 2;
 }
 
 .right-curtain {
-	background-image: url(../images/curtainright.png);
+	background-image: url(images/curtainright.png);
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-position: left;
@@ -91,6 +92,7 @@ body {
 	height: 100%;
 	position: fixed;
 	right: -500px;
+	z-index: 2;
 }
 
 .info {

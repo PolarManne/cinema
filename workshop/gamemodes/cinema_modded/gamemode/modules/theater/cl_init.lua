@@ -376,7 +376,6 @@ function ReceiveVoteSkips()
 
 	AddAnnouncement( {
 		"Theater_PlayerVoteSkipped",
-		name,
 		skips,
 		required
 	} )

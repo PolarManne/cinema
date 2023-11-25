@@ -68,7 +68,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " has unlocked the theater queue."),
 			Theater_OwnerUseOnly = "Only the theater owner can use that.",
 			Theater_PublicVideoLength = "Public theater requests are limited to %s seconds in length.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " has voted to skip ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Player has voted to skip ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " has been added to the queue."),
 
 			-- Warnings
@@ -167,7 +167,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " destravou a fila do teatro."),
 			Theater_OwnerUseOnly = "Somente o dono do teatro pode usar isto.",
 			Theater_PublicVideoLength = "Solicitações feitas em teatros públicos são limitadas a %s segundos de duração.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " votou para pular ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("O jogador votou para pular ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " foi adicionado à fila."),
 
 			-- Warnings
@@ -263,7 +263,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " 已解鎖了本影院的影片佇列."),
 			Theater_OwnerUseOnly = "只有影院擁有者才能使用.",
 			Theater_PublicVideoLength = "公眾影院的影片請求只能播放 %s 秒內的長度",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " 已投票跳過目前的影片 ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("玩家已投票跳過目前的影片 ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " 已加入到佇列."),
 
 			-- Warnings
@@ -348,7 +348,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " 已经解锁了该影院的点播权限"),
 			Theater_OwnerUseOnly = "只有影院拥有者才能使用.",
 			Theater_PublicVideoLength = "公共影院只能点播 %s 秒内的视频",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " 投票跳过： ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("球员投票跳过： ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " 已点播"),
 
 			-- Warnings
@@ -444,7 +444,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " odemkl/a frontu videí."),
 			Theater_OwnerUseOnly = "Toto může použít pouze majitel kina.",
 			Theater_PublicVideoLength = "Videa vyžádaná ve veřejných kinech jsou omezena na maximální délku %s sekund.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " hlasoval/a pro přeskočení ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("​ráč hlasovalo pro přeskočení ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " bylo přidáno do fronty."),
 
 			-- Warnings
@@ -528,7 +528,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " heeft de rij geopend"),
 			Theater_OwnerUseOnly = "Alleen de bioscoopeigenaar kan dit doen.",
 			Theater_PublicVideoLength = "Verzoeken in openbare bioscopen hebben een tijdslimiet van $s seconde(n)",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " heeft gestemd om ", ColHighlight, "(%s/%s)", ColDefault, "over te slaan."),
+			Theater_PlayerVoteSkipped = Compile("Speler heeft gestemd om ", ColHighlight, "(%s/%s)", ColDefault, "over te slaan."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " is aan de rij toegevoegd"),
 
 			-- Warnings
@@ -609,7 +609,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " on avannut teatterin videojonon."),
 			Theater_OwnerUseOnly = "Vain teatterin omistaja voi käyttää tuota.",
 			Theater_PublicVideoLength = "Julkisen teatterin videopyynnöt ovat rajoitettu %s sekunnin pituuteen.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " on äänestänyt ohittamista ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Pelaaja on äänestänyt ohittamista ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " on lisätty videojonoon."),
 
 			-- Warnings
@@ -690,7 +690,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " a déverrouillé la liste d'attente."),
 			Theater_OwnerUseOnly = "Seul le propriétaire du théatre peut utiliser cela.",
 			Theater_PublicVideoLength = "Les requêtes de théatres publics sont limitées à %s seconde(s).",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " a voté pour passer ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Joueur a voté pour passer ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " a été ajoutée à la liste d'attente."),
 
 			-- Warnings
@@ -773,7 +773,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " hat die Warteschlange des Theaters freigegeben."),
 			Theater_OwnerUseOnly = "Nur der Besitzer des Theaters kann das benutzen.",
 			Theater_PublicVideoLength = "Videowünsche in öffentlichen Theatern sind auf %s Sekunden begrenzt.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " hat dafür gestimmt, das Video zu überspringen ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Spieler hat dafür gestimmt, das Video zu überspringen ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " wurde zur Warteschlange hinzugefügt."),
 
 			-- Warnings
@@ -832,7 +832,7 @@ if CLIENT then
 		},
 		["hu"] = {
 			-- Basic information
-			Name = "Hungarian", -- Native name for language
+			Name = "Magyar", -- Native name for language
 			Author = "David Tamas", -- Chain authors if necessary (e.g. "Sam, MacDGuy, Foohy")
 
 			-- Common
@@ -861,7 +861,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " feloldotta a terem várakozósorát."),
 			Theater_OwnerUseOnly = "Csak a teremtulajdonos képes ezt megcsinálni.",
 			Theater_PublicVideoLength = "A nyilvános termek kérései korlátozva vannak %s másodperc hosszúságra.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " szavazott, hogy továbblépjen a következő videóra.", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Játékos szavazott, hogy továbblépjen a következő videóra.", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " hozzáadva a sorhoz."),
 
 			-- Warnings
@@ -945,7 +945,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " ha sbloccato la coda di riproduzione."),
 			Theater_OwnerUseOnly = "Solo il proprietario del teatro può usare questa funzione.",
 			Theater_PublicVideoLength = "Le richieste in un teatro publico sono limitate ad una durata di %s second(s) secondi.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " ha votato per saltare ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Giocatore ha votato per saltare ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " è stato aggiunto alla coda."),
 
 			-- Warnings
@@ -1029,7 +1029,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " はキューのロックを解除しました。"),
 			Theater_OwnerUseOnly = "オーナーだけが使用できます。",
 			Theater_PublicVideoLength = "Public theaterは%s秒に1度リクエストできます。",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, "は", ColHighlight, "(%s/%s)", ColDefault, "をスキップ投票しました。"),
+			Theater_PlayerVoteSkipped = Compile("プレイヤーは", ColHighlight, "(%s/%s)", ColDefault, "をスキップ投票しました。"),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, "はキューを追加しました。"),
 
 			-- Warnings
@@ -1113,7 +1113,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " 님이 대기 열을 잠금 해제하였습니다."),
 			Theater_OwnerUseOnly = "오로지 주인만이 이것을 사용할 수 있습니다.",
 			Theater_PublicVideoLength = "공용 극장은 %s 초의 길이 제한이 있습니다.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " 님이 건너뛰기 투표를 하였습니다. ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("플레이어 님이 건너뛰기 투표를 하였습니다. ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " 비디오가 대기열에 추가되었습니다."),
 
 			-- Warnings
@@ -1168,7 +1168,7 @@ if CLIENT then
 		},
 		["no"] = {
 			-- Basic information
-			Name = "Norwegian", -- Native name for language
+			Name = "Norsk", -- Native name for language
 			Author = "DoleDuck", -- Chain authors if necessary (e.g. "Sam, MacDGuy, Foohy")
 
 			-- Common
@@ -1197,7 +1197,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " har åpnet køen."),
 			Theater_OwnerUseOnly = "Bare eieren av kinoen kan gjøre det.",
 			Theater_PublicVideoLength = "Forespørsler i offentlige kinoer har en frist på %s sekund(er).",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " har stemt for å hoppe over ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Spillerhar stemt for å hoppe over ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " har blitt lagt til i køen."),
 
 			-- Warnings
@@ -1258,7 +1258,7 @@ if CLIENT then
 			-- Common
 			Cinema = "CINEMA",
 			Volume = "Loudness",
-			Voteskips = "Mutinies",
+			Voteskips = "Mutinieers",
 			Loading = "Sailing...",
 			Invalid = "[INVALID]",
 			NoVideoPlaying = "No ships sailing",
@@ -1280,19 +1280,19 @@ if CLIENT then
 			Theater_LockedQueue = Compile(ColHighlight, "%s", ColDefault, " closed the harbour."),
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " opened the harbour."),
 			Theater_OwnerUseOnly = "Only the captain can do that.",
-			Theater_PublicVideoLength = "New ship requests may only be %s second(s) in length.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " sunk the ", ColHighlight, "(%s/%s)", ColDefault, "!"),
+			Theater_PublicVideoLength = "New ship requests may only be %s sec'nd(s) in length.",
+			Theater_PlayerVoteSkipped = Compile("A matey voted to mutiny", ColHighlight, "(%s/%s)", ColDefault, "!"),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " sailed into harbour."),
 
 			-- Warnings
-			Warning_Unsupported_Line1 = "The current map be unsupported by the Cinema gamemode",
-			Warning_Unsupported_Line2 = "Press F1 to open the official map on workshop",
+			Warning_Unsupported_Line1 = "The current map be incomplete, and can't be used to sail the Cinema gamemode.",
+			Warning_Unsupported_Line2 = "Press F1 to open the official map on the Workshop.",
 
 			-- Queue
 			Queue_Title = "Harbour (Queue)",
 			Request_Video = "Add Ship (Request Video)",
 			Vote_Skip = "Join Mutiny (Voteskip)",
-			Toggle_Fullscreen = "Toggle Fullscreen",
+			Toggle_Fullscreen = "Get the Scope (Toggle Fullscreen)",
 			Refresh_Theater = "Swab the Poopdeck (Reset Theater)",
 
 			-- Theater controls
@@ -1322,14 +1322,14 @@ if CLIENT then
 			Settings_VolumeLabel = "Loudness",
 			Settings_VolumeTooltip = "Use the +/- keys to increase/decrease volume.",
 			Settings_HidePlayersLabel = "Send crew to thar quarters.",
-			Settings_HidePlayersTooltip = "Reduce player visibility inside of theaters.",
+			Settings_HidePlayersTooltip = "Reduce player visibility inside of theatres.",
 			Settings_MuteFocusLabel = "Silence noises while in quarters",
-			Settings_MuteFocusTooltip = "Mute theater volume while Garry's Mod be out-of-focus (e.g. you alt-tabbed).",
+			Settings_MuteFocusTooltip = "Silence the theatre while yer doin' somethin' else (e.g. you alt-tabbed).",
 
 			-- Video Services
 			Service_EmbedDisabled = "The requested ship be unfit for the open sea.",
 			Service_PurchasableContent = "The requested ship be too expensive to sail.",
-			Service_StreamOffline = "The requested ship be a ghost.",
+			Service_StreamOffline = "The requested ship be in Davy Jones's Locker.",
 
 			-- Credits
 			TranslationsCredit = "Translations by %s",
@@ -1365,7 +1365,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " odblokował kolejkę sali kinowej."),
 			Theater_OwnerUseOnly = "Tylko właściciel sali kinowej może tego używać.",
 			Theater_PublicVideoLength = "Żądania w publicznych salach kinowych są ograniczone do długości %s sekund.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " zagłosował na pominięcie ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Gracz zagłosował na pominięcie ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " zostało dodane do kolejki."),
 
 			-- Ostrzeżenia
@@ -1420,7 +1420,7 @@ if CLIENT then
 		},
 		["ru"] = {
 			-- Basic information
-			Name = "Russian", -- Native name for language
+			Name = "Русский", -- Native name for language
 			Author = "Joker[Rus], berry, Alivebyte!", -- Chain authors if necessary (e.g. "Sam, MacDGuy, Foohy")
 
 			-- Common
@@ -1449,7 +1449,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " открыл возможность вставки видео."),
 			Theater_OwnerUseOnly = "Только владелец театра может использовать это.",
 			Theater_PublicVideoLength = "Максимальный лимит видео в публичном театре %s сек. в длину.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " проголосовал за пропуск ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Игрок проголосовал за пропуск ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " было добавлено в очередь."),
 
 			-- Warnings
@@ -1534,7 +1534,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " ha abierto la lista del teatro."),
 			Theater_OwnerUseOnly = "Solamente el propietario de este teatro puede usar eso.",
 			Theater_PublicVideoLength = "Las solicitudes en teatros públicos son limitados a %s segundo(s) largo de video.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " ha votado para omitir ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Jugador ha votado para omitir ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " fue añadido a la lista."),
 
 			-- Warnings
@@ -1585,7 +1585,7 @@ if CLIENT then
 			Service_StreamOffline = "El video en vivo solicitado está fuera de servicio.",
 		},
 		["tr"] = {
-			Name = "Turkish", -- Native name for language
+			Name = "Türkçe", -- Native name for language
 			Author = "Arda Turkmen", -- Chain authors if necessary (e.g. "Sam, MacDGuy, Foohy")
 
 			-- Common
@@ -1614,7 +1614,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " adli kisi kilidi kaldirdi."),
 			Theater_OwnerUseOnly = "Sadece tiyatro sahibi bunu kullanabilir.",
 			Theater_PublicVideoLength = "Bu acik tiyatrodaki videolar sadece %s saniye oynatilabilir.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " adli kisi videoyu gecmek icin oylama baslatti ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Oyuncu adli kisi videoyu gecmek icin oylama baslatti ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " adli kisi kuyruga girdi."),
 
 			-- Warnings
@@ -1669,7 +1669,7 @@ if CLIENT then
 		},
 		["uk"] = {
 			-- Basic information
-			Name = "Ukrainian", -- Native name for language
+			Name = "Українська", -- Native name for language
 			Author = "Joker[Rus]", -- Chain authors if necessary (e.g. "Sam, MacDGuy, Foohy")
 
 			-- Common
@@ -1698,7 +1698,7 @@ if CLIENT then
 			Theater_UnlockedQueue = Compile(ColHighlight, "%s", ColDefault, " відкрив возможность вставки видео."),
 			Theater_OwnerUseOnly = "Тільки власник театру може використовувати це.",
 			Theater_PublicVideoLength = "Максимальний ліміт відео в Публічному Театрі %s секунд(и) в довжину.",
-			Theater_PlayerVoteSkipped = Compile(ColHighlight, "%s", ColDefault, " проголосував за пропуск ", ColHighlight, "(%s/%s)", ColDefault, "."),
+			Theater_PlayerVoteSkipped = Compile("Гравець проголосував за пропуск ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " було додано в чергу."),
 
 			-- Warnings
