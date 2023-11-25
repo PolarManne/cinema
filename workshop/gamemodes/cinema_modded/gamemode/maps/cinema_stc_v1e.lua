@@ -91,10 +91,6 @@ Location.Add( "cinema_stc_v1e",
 			Ang = Angle(0, 90, 0),
 			Width = 197,
 			Height = 215 * 8.4 / 16,
-			ThumbInfo = {
-				Pos = Vector( -4473, -1920, -952 ),
-				Ang = Angle(0, -90, 0)
-			}
 		}
 	},
    
@@ -109,10 +105,6 @@ Location.Add( "cinema_stc_v1e",
 			Ang = Angle(0, 180, 0),
 			Width = 370,
 			Height = 400 * 8.4 / 16,
-			ThumbInfo = {
-				Pos = Vector( -3968, -191, -1787 ),
-				Ang = Angle(0, -90, 0)
-			}
 		}
 	},
 
@@ -128,10 +120,6 @@ Location.Add( "cinema_stc_v1e",
 			Ang = Angle(0, 180, 0),
 			Width = 576,
 			Height = 256,
-			ThumbInfo = {
-				Pos = Vector( -202, 248, 55 ),
-				Ang = Angle(0, -90, 0)
-			}
 		}
 	},
 
@@ -146,10 +134,6 @@ Location.Add( "cinema_stc_v1e",
 			Ang = Angle(0, 90, 0),
 			Width = 1022,
 			Height = 510,
-			ThumbInfo = {
-				Pos = Vector( -5472, 8257, 1975 ),
-				Ang = Angle(0, 0, 0)
-			}
 		}
 	},    
 
@@ -164,10 +148,6 @@ Location.Add( "cinema_stc_v1e",
 			Ang = Angle(0, 0, 0),
 			Width = 900,
 			Height = 900 * 8.4 / 16,
-			ThumbInfo = {
-          Pos = Vector( 202, 248, 55 ),
-				Ang = Angle(0, -90, 0)
-			}
 		}
 	},
 
