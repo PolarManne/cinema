@@ -70,6 +70,7 @@ if CLIENT then
 			Theater_PublicVideoLength = "Public theater requests are limited to %s seconds in length.",
 			Theater_PlayerVoteSkipped = Compile("Player has voted to skip ", ColHighlight, "(%s/%s)", ColDefault, "."),
 			Theater_VideoAddedToQueue = Compile(ColHighlight, "%s", ColDefault, " has been added to the queue."),
+			Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 			-- Warnings
 			Warning_Unsupported_Line1 = "The current map is unsupported by the Cinema gamemode.",

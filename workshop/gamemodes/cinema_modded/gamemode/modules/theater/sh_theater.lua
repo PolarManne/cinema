@@ -649,8 +649,11 @@ if SERVER then
 
 	function THEATER:NumRequiredVoteSkips()
 
-		local ratio = math.Clamp( GetConVar("cinema_skip_ratio"):GetFloat() or 2 / 3, 0, 1 )
+		local ratio = math.Clamp( GetConVar("cinema_skip_ratio"):GetFloat() or 2 / 3, -1, 1 )
 
+		if ratio < 0 then
+			return -1
+		end
 		local numply = self:NumPlayers()
 		if numply == 1 then
 			return 1
@@ -687,6 +690,12 @@ if SERVER then
 		-- Can't vote skip if a video isn't playing
 		if not self:IsPlaying() then return end
 
+		-- Check to see if voteskip is disabled
+		if self:NumRequiredVoteSkips() == -1 then
+			return self:AnnounceToPlayer( ply, "Theater_VoteSkipDisabled" )
+		end
+
+
 		-- Validate vote skips before checking them
 		self:ValidateSkipVotes()
 
@@ -695,7 +704,7 @@ if SERVER then
 
 		-- Give hooks a chance to deny the voteskip
 		if hook.Run("PreVoteSkipAccept", ply, self) == false then return end
-
+		
 		-- Insert player into list of vote skips
 		table.insert(self._SkipVotes, ply)
 
