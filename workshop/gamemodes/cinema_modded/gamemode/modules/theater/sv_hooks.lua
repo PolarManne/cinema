@@ -73,7 +73,16 @@ end
 	Desc: Called after a video has been set to play.
 ---------------------------------------------------------------------------*/
 function GM:PostPlayVideo( Video, Theater )
-
+	-- Output debug information
+	Msg("Loaded Video\n")
+	Msg("\tLocation:\t\t" .. tostring(Theater:Name()) .. "\n")
+	Msg("\tTitle:\t\t" .. tostring(Video:Title()) .. "\n")
+	Msg("\tType:\t\t" .. tostring(Video:Type()) .. "\n")
+	Msg("\tData:\t\t" .. tostring(Video:Data()) .. "\n")
+	Msg("\tTime:\t\t" .. tostring(startTime) .. "\n")
+	Msg("\tDuration:\t" .. tostring(Video:Duration()) .. "\n")
+	Msg( string.format("\tRequested by %s (%s)", Video:GetOwnerName(),
+		Video:GetOwnerSteamID() ) .. "\n" )
 end
 
 
