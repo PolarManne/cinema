@@ -695,7 +695,6 @@ if SERVER then
 			return self:AnnounceToPlayer( ply, "Theater_VoteSkipDisabled" )
 		end
 
-
 		-- Validate vote skips before checking them
 		self:ValidateSkipVotes()
 
@@ -727,6 +726,9 @@ if SERVER then
 
 		-- Can't skip if the queue is locked
 		if self:IsQueueLocked() then return end
+
+		-- Can't skip if voteskip is disabled
+		if self:NumRequiredVoteSkips() == -1 then return end		
 
 		-- Skip the current video if the voteskip requirement is met
 		if self:NumVoteSkips() >= self:NumRequiredVoteSkips() then

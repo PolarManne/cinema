@@ -1,6 +1,3 @@
-for k, v in pairs(ents.FindByModel("models/sunabouzu/thumbnail_case.mdl")) do
-	v:Remove()
-end
 
 Location.Add( "cinema_harbl_winter", {
 	[ "Rooftop" ] =
@@ -49,34 +46,3 @@ Location.Add( "cinema_harbl_winter", {
 		Max = Vector( 6095, 3200, 760 ),
 	},
 } )
-
--- spawn a poker table in the bar room
-
-function SpawnPokerTables()
-	if SERVER then
-			for k, v in pairs(ents.FindByClass("ent_poker_game")) do
-					v:Remove()
-			end
-
-			local poker_table = ents.Create( "ent_poker_game" )
-
-			poker_table:Spawn()
-			poker_table:Activate()
-
-			poker_table:SetPos( Vector(6096, 3040, 388) )
-			poker_table:SetAngles( Angle(0, 90, 0) )
-
-			poker_table:SetGameState(-1)
-			poker_table:SetGameType(1)
-			poker_table:SetBetType(0)
-			poker_table:SetMaxPlayers(8)
-			poker_table:SetEntryBet(100)
-			poker_table:SetStartValue(1000)
-
-			local phys = poker_table:GetPhysicsObject()
-			phys:EnableMotion( false )
-
-	end
-end
-
-hook.Add( "InitPostEntity", "cinema_SpawnPokerTables", SpawnPokerTables )
