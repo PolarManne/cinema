@@ -117,6 +117,18 @@ h1 {
 .logo-kino {
 	background-image: url(../images/robert.png);
 }
+
+.logo-madhammer {
+	background-image: url(../images/logos/madhammer.png);
+}
+
+.logo-lain {
+	background-image: url(../images/logos/lain.png);
+}
+
+.logo-uguu {
+	background-image: url(../images/logos/uguu.png);
+}
 .notice {
 	text-align: center;
 	color: rgba(255, 255, 255, 0.44);
