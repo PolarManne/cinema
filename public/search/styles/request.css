@@ -72,9 +72,6 @@ h1 {
 .logo-twitch {
 	background-image: url(../images/logos/twitch.png);
 }
-.logo-soundcloud {
-	background-image: url(../images/logos/soundcloud.png);
-}
 .logo-vimeo {
 	background-image: url(../images/logos/vimeo.svg);
 	background-size: 80px;
@@ -84,10 +81,6 @@ h1 {
 }
 .logo-archive {
 	background-image: url(../images/logos/archive.png);
-}
-.logo-yugen {
-	background-image: url(../images/logos/yugen.png);
-	background-size: 50px;
 }
 .logo-rumble {
 	background-image: url(../images/logos/rumble.png);
