@@ -1,7 +1,7 @@
 local SERVICE = {}
 
 SERVICE.Name = "HLS Video"
-SERVICE.IsTimed = true
+SERVICE.IsTimed = false
 
 SERVICE.Dependency = DEPENDENCY_COMPLETE
 SERVICE.ExtentedVideoInfo = true
@@ -151,10 +151,4 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 end
 
 theater.RegisterService( "hls", SERVICE )
-theater.RegisterService( "hls_live", {
-	Name = "HLS Live",
-	IsTimed = false,
-	Dependency = DEPENDENCY_COMPLETE,
-	Hidden = true,
-	LoadProvider = CLIENT and SERVICE.LoadProvider or function() end
-} )
+

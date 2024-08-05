@@ -118,6 +118,12 @@ h1 {
 	background-image: url(../images/robert.png);
 }
 
+.logo-upload {
+	background-image: url(../images/logos/upload.png);
+	background-size: 80px;
+}
+
+
 .logo-madhammer {
 	background-image: url(../images/logos/madhammer.png);
 }

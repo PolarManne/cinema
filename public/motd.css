@@ -1,0 +1,39 @@
+body {background-color: #331111;} 
+
+div {
+	text-align: center;
+	font-family: georgia;
+        color: white;
+}
+
+a:link {
+	color: red;
+}
+
+a:visited {
+	color: maroon;
+}
+
+.infobox {
+	width: 750px;
+	height: 450px;
+	background-color: rgba(15, 15, 15, 0.7);
+	padding: 7px;
+	border: 2px solid darkred;
+	border-radius: 25px;
+	position: absolute;
+	line-height: 75%;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
+}
+
+.contact-info {
+	align: left
+}
+
+.server-info {
+	align: right
+}
