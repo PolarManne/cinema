@@ -393,12 +393,6 @@ function LoadVideo( Video )
 	local theaterUrl = GetGlobal2String( "cinema_url", "" )
 
 	local panel = ActivePanel()
-
-	-- Always destroy previous panels to avoid weird bugs
-	if IsValid(panel) then
-		RemovePanels()
-	end
-
 	if not IsValid( panel ) then
 
 		-- Initialize HTML panel
