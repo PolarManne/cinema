@@ -71,7 +71,7 @@ end
 			a good reason for it not to.
 -----------------------------------------------------------]]
 function GM:ShouldCollide( Ent1, Ent2 )
-	return false
+	return true
 end
 
 
