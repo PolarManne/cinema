@@ -1,6 +1,6 @@
 local SERVICE = {
 	Name = "URL (HLS Video)",
-	IsTimed = true,
+	IsTimed = false,
 
 	Dependency = DEPENDENCY_COMPLETE,
 	ExtentedVideoInfo = true
@@ -122,13 +122,7 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 
 		local info = {}
 		info.title = ("HLS: %s"):format(data:Data())
-
-		if metadata.live then
-			info.type = "url_hlslive"
-			info.duration = 0
-		else
-			info.duration = math.Round(tonumber(metadata.duration))
-		end
+		info.duration = 0
 
 		if onSuccess then
 			pcall(onSuccess, info)
@@ -137,16 +131,4 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 
 end
 
-<<<<<<< HEAD:workshop/gamemodes/cinema_modded/gamemode/modules/theater/services/sh_hls.lua
-theater.RegisterService( "hls", SERVICE )
-
-=======
 theater.RegisterService( "url_hls", SERVICE )
-theater.RegisterService( "url_hlslive", {
-	Name = "URL (HLS Live)",
-	IsTimed = false,
-	Dependency = DEPENDENCY_COMPLETE,
-	Hidden = true,
-	LoadProvider = CLIENT and SERVICE.LoadProvider or function() end
-} )
->>>>>>> upstream/master:workshop/gamemodes/cinema_modded/gamemode/modules/theater/services/sh_url_hls.lua
