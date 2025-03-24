@@ -1,17 +1,15 @@
-local SERVICE = {}
-
-SERVICE.Name = "YouTube"
-SERVICE.IsTimed = true
-
-SERVICE.Dependency = DEPENDENCY_PARTIAL
-SERVICE.ExtentedVideoInfo = true
-
-local METADATA_URL = "https://www.youtube.com/watch?v=%s"
-
 --[[
-	Credits to veitikka (https://github.com/veitikka) for fixing YouTube service and writing the
-	Workaround with a Metadata parser.
+	Workaround with a Metadata parser made by veitikka (https://github.com/veitikka)
+	Src: https://github.com/samuelmaddock/gm-mediaplayer/pull/34
 --]]
+
+local SERVICE = {
+	Name = "YouTube",
+	IsTimed = true,
+
+	Dependency = DEPENDENCY_PARTIAL,
+	ExtentedVideoInfo = true,
+}
 
 -- Lua search patterns to find metadata from the html
 local patterns = {
@@ -23,9 +21,7 @@ local patterns = {
 	["age_restriction"] = "<meta%sproperty=\"og:restrictions:age\"%s-content=%b\"\">"
 }
 
----
 -- Function to parse video metadata straight from the html instead of using the API
---
 local function ParseMetaDataFromHTML( html )
 	--MetaData table to return when we're done
 	local metadata, html = {}, html
@@ -57,7 +53,7 @@ local function ParseMetaDataFromHTML( html )
 end
 
 function SERVICE:Match( url )
-	return url.host and url.host:match("yo?u?e?w?tu?.?be[.com]?")
+	return url.host and url.host:match("youtu.?be[.com]?")
 end
 
 if (CLIENT) then
@@ -139,8 +135,7 @@ if (CLIENT) then
 
 	function SERVICE:GetMetadata( data, callback )
 
-
-		http.Fetch(METADATA_URL:format(data), function(body, length, headers, code)
+		http.Fetch(("https://www.youtube.com/watch?v=%s"):format(data), function(body, length, headers, code)
 			if not body or code ~= 200 then
 				callback({ err = ("Not expected response received from YouTube (Code: %d)"):format(code) })
 				return
@@ -156,6 +151,13 @@ if (CLIENT) then
 		end, function(error)
 			callback({ err = ("YouTube Error: %s"):format(error) })
 		end, {})
+
+	end
+
+	function SERVICE:SearchFunctions( browser )
+		if not IsValid( browser ) then return end
+
+		browser:RunJavascript(BROWSER_JS)
 	end
 end
 
@@ -199,15 +201,10 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 
 		if metadata.err then
 			return onFailure(metadata.err)
-	theater.FetchVideoMedata( data:GetOwner(), data, function(metadata)
-
-		if metadata.err then
-			return onFailure(metadata.err)
 		end
 
 		local info = {}
 		info.title = metadata.title
-		info.thumbnail = ("https://img.youtube.com/vi/(%s)/hqdefault.jpg"):format(data)
 		info.thumbnail = ("https://img.youtube.com/vi/(%s)/hqdefault.jpg"):format(data)
 
 		if metadata.duration == 0 then
@@ -226,7 +223,6 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 			pcall(onSuccess, info)
 		end
 	end)
-	end)
 
 end
 
@@ -241,3 +237,11 @@ theater.RegisterService( "youtubelive", {
 	Hidden = true,
 	LoadProvider = CLIENT and SERVICE.LoadProvider or function() end
 } )
+
+-- theater.RegisterService( "youtubensfw", {
+-- 	Name = "YouTube NSFW",
+-- 	IsTimed = true,
+-- 	Dependency = DEPENDENCY_PARTIAL,
+-- 	Hidden = true,
+-- 	LoadProvider = CLIENT and SERVICE.LoadProvider or function() end
+-- } )
