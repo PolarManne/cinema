@@ -1,17 +1,22 @@
-local SERVICE = {}
+local SERVICE = {
+	Name = "URL (HLS Video)",
+	IsTimed = true,
 
-SERVICE.Name = "HLS Video"
-SERVICE.IsTimed = false
-
-SERVICE.Dependency = DEPENDENCY_COMPLETE
-SERVICE.ExtentedVideoInfo = true
+	Dependency = DEPENDENCY_COMPLETE,
+	ExtentedVideoInfo = true
+}
 
 local validExtensions = {
 	["m3u8"] = true,
 }
 
 function SERVICE:Match( url )
-	return validExtensions[ string.GetExtensionFromFilename( url.path ) ]
+
+	if url.file and validExtensions[ url.file.ext ] then
+		return true
+	end
+
+	return false
 end
 
 if (CLIENT) then
@@ -92,28 +97,10 @@ if (CLIENT) then
 	end
 
 	function SERVICE:GetMetadata( data, callback )
-		local panel = vgui.Create("HTML")
-		panel:SetSize(100,100)
-		panel:SetAlpha(0)
-		panel:SetMouseInputEnabled(false)
 
-		function panel:ConsoleMessage(msg)
-			if msg:StartWith("METADATA:") then
-				local metadata = util.JSONToTable(string.sub(msg, 10))
-
-				callback(metadata)
-				panel:Remove()
-			end
-
-			if msg:StartWith("ERROR:") then
-				local errmsg = string.sub(msg, 7)
-
-				callback({ err = errmsg })
-				panel:Remove()
-			end
-		end
-
+		local panel = self:CreateWebCrawler(callback)
 		panel:SetHTML(METADATA_HTML:Replace( "{@VideoSrc}", data ))
+
 	end
 end
 
@@ -137,7 +124,7 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 		info.title = ("HLS: %s"):format(data:Data())
 
 		if metadata.live then
-			info.type = "hls_live"
+			info.type = "url_hlslive"
 			info.duration = 0
 		else
 			info.duration = math.Round(tonumber(metadata.duration))
@@ -150,5 +137,16 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 
 end
 
+<<<<<<< HEAD:workshop/gamemodes/cinema_modded/gamemode/modules/theater/services/sh_hls.lua
 theater.RegisterService( "hls", SERVICE )
 
+=======
+theater.RegisterService( "url_hls", SERVICE )
+theater.RegisterService( "url_hlslive", {
+	Name = "URL (HLS Live)",
+	IsTimed = false,
+	Dependency = DEPENDENCY_COMPLETE,
+	Hidden = true,
+	LoadProvider = CLIENT and SERVICE.LoadProvider or function() end
+} )
+>>>>>>> upstream/master:workshop/gamemodes/cinema_modded/gamemode/modules/theater/services/sh_url_hls.lua

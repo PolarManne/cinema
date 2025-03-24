@@ -104,6 +104,8 @@ function GM:PlayerSpawn( pl )
 	hook.Call( "PlayerSetModel", GAMEMODE, pl )
 	pl:SetupHands()
 
+	pl:SetupHands()
+
 end
 
 --[[---------------------------------------------------------

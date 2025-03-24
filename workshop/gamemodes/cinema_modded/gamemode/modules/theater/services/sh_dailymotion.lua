@@ -1,9 +1,9 @@
-local SERVICE = {}
+local SERVICE = {
+	Name = "Dailymotion",
+	IsTimed = true,
 
-SERVICE.Name = "Dailymotion"
-SERVICE.IsTimed = true
-
-SERVICE.Dependency = DEPENDENCY_COMPLETE
+	Dependency = DEPENDENCY_COMPLETE
+}
 
 local API_URL = "https://api.dailymotion.com/video/%s?fields=id,title,duration,thumbnail_url,status,mode,private"
 
@@ -17,6 +17,9 @@ if (CLIENT) then
 		var checkerInterval = setInterval(function() {
 			if (document.querySelector(".np_DialogConsent-accept")) {
 				document.querySelector(".np_DialogConsent-accept").click();
+			}
+			if (document.querySelector(".consent_screen-button.consent_screen-accept")) {
+				document.querySelector(".consent_screen-button.consent_screen-accept").click();
 			}
 
 			var player = document.querySelector("video#video");

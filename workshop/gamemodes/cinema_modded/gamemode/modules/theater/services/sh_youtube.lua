@@ -62,17 +62,78 @@ end
 
 if (CLIENT) then
 
+	local THEATER_JS = [[
+		(async () => {
+			var checkerInterval = setInterval(function () {
+				if (!YT || !YT.get) { return; }
+
+				if (typeof YT === 'object') {
+					var player = YT.get("widget2");
+
+					if (!!player && !!player.getDuration) {
+						clearInterval(checkerInterval);
+
+						{ // Native video controll
+							player.volume = 0;
+							player.currentTime = 0;
+							player.duration = player.getDuration();
+
+							Object.defineProperty(player, "volume", {
+								get() {
+									return player.getVolume();
+								},
+								set(volume) {
+									if (player.isMuted()) {
+										player.unMute();
+									}
+									player.setVolume(volume * 100);
+								},
+							});
+
+							Object.defineProperty(player, "currentTime", {
+								get() {
+									return Number(player.getCurrentTime());
+								},
+								set(time) {
+									player.seekTo(time, true);
+								},
+							});
+						}
+
+						{ // Player resizer
+							var frame = player.g;
+							var root = document.getElementById("root")
+
+							document.body.appendChild(frame);
+
+							frame.style.backgroundColor = "#000";
+							frame.style.height = "100vh";
+							frame.style.left = "0px";
+							frame.style.width = "100%";
+
+							if (!!root) { root.remove(); }
+						}
+
+						window.cinema_controller = player;
+						exTheater.controllerReady();
+					}
+				}
+			}, 50);
+		})();
+	]]
+
+	local BROWSER_JS = [[
+		// YouTube Adblock (https://github.com/Vendicated/Vencord/blob/main/src/plugins/youtubeAdblock.desktop/adguard.js - #d199603)
+		const hiddenCSS=["#__ffYoutube1","#__ffYoutube2","#__ffYoutube3","#__ffYoutube4","#feed-pyv-container","#feedmodule-PRO","#homepage-chrome-side-promo","#merch-shelf","#offer-module",'#pla-shelf > ytd-pla-shelf-renderer[class="style-scope ytd-watch"]',"#pla-shelf","#premium-yva","#promo-info","#promo-list","#promotion-shelf","#related > ytd-watch-next-secondary-results-renderer > #items > ytd-compact-promoted-video-renderer.ytd-watch-next-secondary-results-renderer","#search-pva","#shelf-pyv-container","#video-masthead","#watch-branded-actions","#watch-buy-urls","#watch-channel-brand-div","#watch7-branded-banner","#YtKevlarVisibilityIdentifier","#YtSparklesVisibilityIdentifier",".carousel-offer-url-container",".companion-ad-container",".GoogleActiveViewElement",'.list-view[style="margin: 7px 0pt;"]',".promoted-sparkles-text-search-root-container",".promoted-videos",".searchView.list-view",".sparkles-light-cta",".watch-extra-info-column",".watch-extra-info-right",".ytd-carousel-ad-renderer",".ytd-compact-promoted-video-renderer",".ytd-companion-slot-renderer",".ytd-merch-shelf-renderer",".ytd-player-legacy-desktop-watch-ads-renderer",".ytd-promoted-sparkles-text-search-renderer",".ytd-promoted-video-renderer",".ytd-search-pyv-renderer",".ytd-video-masthead-ad-v3-renderer",".ytp-ad-action-interstitial-background-container",".ytp-ad-action-interstitial-slot",".ytp-ad-image-overlay",".ytp-ad-overlay-container",".ytp-ad-progress",".ytp-ad-progress-list",'[class*="ytd-display-ad-"]','[layout*="display-ad-"]','a[href^="http://www.youtube.com/cthru?"]','a[href^="https://www.youtube.com/cthru?"]',"ytd-action-companion-ad-renderer","ytd-banner-promo-renderer","ytd-compact-promoted-video-renderer","ytd-companion-slot-renderer","ytd-display-ad-renderer","ytd-promoted-sparkles-text-search-renderer","ytd-promoted-sparkles-web-renderer","ytd-search-pyv-renderer","ytd-single-option-survey-renderer","ytd-video-masthead-ad-advertiser-info-renderer","ytd-video-masthead-ad-v3-renderer","YTM-PROMOTED-VIDEO-RENDERER"],hideElements=()=>{if(!hiddenCSS)return;const e=hiddenCSS.join(", ")+" { display: none!important; }",r=document.createElement("style");r.textContent=e,document.head.appendChild(r)},observeDomChanges=e=>{new MutationObserver((r=>{e(r)})).observe(document.documentElement,{childList:!0,subtree:!0})},hideDynamicAds=()=>{const e=document.querySelectorAll("#contents > ytd-rich-item-renderer ytd-display-ad-renderer");0!==e.length&&e.forEach((e=>{if(e.parentNode&&e.parentNode.parentNode){const r=e.parentNode.parentNode;"ytd-rich-item-renderer"===r.localName&&(r.style.display="none")}}))},autoSkipAds=()=>{if(document.querySelector(".ad-showing")){const e=document.querySelector("video");e&&e.duration&&(e.currentTime=e.duration,setTimeout((()=>{const e=document.querySelector("button.ytp-ad-skip-button");e&&e.click()}),100))}},overrideObject=(e,r,t)=>{if(!e)return!1;let o=!1;for(const d in e)e.hasOwnProperty(d)&&d===r?(e[d]=t,o=!0):e.hasOwnProperty(d)&&"object"==typeof e[d]&&overrideObject(e[d],r,t)&&(o=!0);return o},jsonOverride=(e,r)=>{const t=JSON.parse;JSON.parse=(...o)=>{const d=t.apply(this,o);return overrideObject(d,e,r),d},Response.prototype.json=new Proxy(Response.prototype.json,{async apply(...t){const o=await Reflect.apply(...t);return overrideObject(o,e,r),o}})};jsonOverride("adPlacements",[]),jsonOverride("playerAds",[]),hideElements(),hideDynamicAds(),autoSkipAds(),observeDomChanges((()=>{hideDynamicAds(),autoSkipAds()}));
+	]]
+
 	function SERVICE:LoadProvider( Video, panel )
 
-		local url = GetGlobal2String( "cinema_url", "" ) .. "youtube.html?v=%s"
-		panel:OpenURL( url:format( Video:Data() ) ..
-			(self.IsTimed and ("&t=%s"):format(
-				math.Round(CurTime() - Video:StartTime())
-			) or "")
-		)
+		panel:OpenURL(("https://youtube-lite.js.org/#/watch?v=%s"):format(Video:Data()))
 
 		panel.OnDocumentReady = function(pnl)
-			self:LoadExFunctions(pnl)
+			self:LoadExFunctions( pnl )
+			pnl:RunJavascript(THEATER_JS)
 		end
 	end
 
@@ -138,10 +199,15 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 
 		if metadata.err then
 			return onFailure(metadata.err)
+	theater.FetchVideoMedata( data:GetOwner(), data, function(metadata)
+
+		if metadata.err then
+			return onFailure(metadata.err)
 		end
 
 		local info = {}
 		info.title = metadata.title
+		info.thumbnail = ("https://img.youtube.com/vi/(%s)/hqdefault.jpg"):format(data)
 		info.thumbnail = ("https://img.youtube.com/vi/(%s)/hqdefault.jpg"):format(data)
 
 		if metadata.duration == 0 then
@@ -149,7 +215,8 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 			info.duration = 0
 		else
 			if metadata.familyfriendly == "18+" then
-				info.type = "youtubensfw"
+				-- info.type = "youtubensfw"
+				return onFailure( "YouTube age-restricted content is currently not supported." )
 			end
 
 			info.duration = metadata.duration
@@ -159,14 +226,14 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 			pcall(onSuccess, info)
 		end
 	end)
+	end)
 
 end
 
 theater.RegisterService( "youtube", SERVICE )
 
--- Implementation is found in 'youtube' service.
--- GetVideoInfo switches to 'youtubelive'
-
+-- Implementation is found in "youtube" service.
+-- GetVideoInfo switches to "youtubelive"
 theater.RegisterService( "youtubelive", {
 	Name = "YouTube Live",
 	IsTimed = false,

@@ -74,7 +74,21 @@ function PANEL:Init()
 	self.Browser = vgui.Create( "TheaterHTML", self.BrowserContainer )
 	self.Browser.isContainer = true
 
-	self.Browser:OpenURL( GetGlobal2String( "cinema_url_search", "" ) )
+	local searchURL = GetGlobal2String( "cinema_url_search", "" )
+	function self.Browser:OnDocumentReady( url )
+		if (not self.searchUrl) then self.searchUrl = searchURL end
+		if (url == searchURL) then return end
+
+		if IsValid(self) then
+			local service = theater.GetServiceByURL(url)
+
+			if (service and istable(service)) then
+				service:SearchFunctions(self)
+			end
+		end
+	end
+
+	self.Browser:OpenURL( searchURL )
 
 	self.Controls = vgui.Create( "TheaterHTMLControls", self.BrowserContainer )
 	self.Controls:SetHTML( self.Browser )
@@ -283,7 +297,9 @@ function HISTORY:Init()
 	self.PagerLeft:Dock(LEFT)
 	self.PagerLeft.DoClick = function()
 		if self.History[self.CurrentPageCount] then
-			self.CurrentPageCount = self.CurrentPageCount - 1
+			local page = self.CurrentPageCount - 1
+
+			self.CurrentPageCount = (page == 0 and #self.History or page)
 		end
 
 		self:Search()
