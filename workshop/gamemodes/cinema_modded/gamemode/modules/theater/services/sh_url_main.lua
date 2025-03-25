@@ -22,6 +22,7 @@ local videoExtensions = {
 	["mp4"] = true,
 	["webm"] = true,
 	["mov"] = true,
+	["mkv"] = true,
 }
 validExtensions = table.Merge(validExtensions, videoExtensions)
 

@@ -162,7 +162,7 @@ if CLIENT then
 		panel.OnDocumentReady = function() end -- Clear any possible remainings of Service code
 		panel:Stop() -- Stops all panel animations by clearing its animation list. This also clears all delayed animations.
 
-		panel:RunJavascript("if(typeof checkerInterval !== \"undefined\") { clearInterval(checkerInterval); }") -- Stop any remaining Intervals
+		--panel:RunJavascript("if(typeof checkerInterval !== \"undefined\") { clearInterval(checkerInterval); }") -- Stop any remaining Intervals
 
 		if self.LoadProvider then
 			self:LoadProvider(Video, panel)
