@@ -7,7 +7,7 @@ local SERVICE = {
 	Name = "YouTube",
 	IsTimed = true,
 
-	Dependency = DEPENDENCY_PARTIAL,
+	NeedsCodecFix = false,
 	ExtentedVideoInfo = true,
 }
 
@@ -96,20 +96,6 @@ if (CLIENT) then
 							});
 						}
 
-						{ // Player resizer
-							var frame = player.g;
-							var root = document.getElementById("root")
-
-							document.body.appendChild(frame);
-
-							frame.style.backgroundColor = "#000";
-							frame.style.height = "100vh";
-							frame.style.left = "0px";
-							frame.style.width = "100%";
-
-							if (!!root) { root.remove(); }
-						}
-
 						window.cinema_controller = player;
 						exTheater.controllerReady();
 					}
@@ -125,7 +111,11 @@ if (CLIENT) then
 
 	function SERVICE:LoadProvider( Video, panel )
 
-		panel:OpenURL(("https://youtube-lite.js.org/#/watch?v=%s"):format(Video:Data()))
+		--[[
+			This site is hosted on a private repo with Cloudflare as CDN, changes have been made to work better with Garry's Mod.
+			It is based on @9oelM's YouTube-Lite work. Src: https://github.com/9oelM/youtube-lite
+		--]]
+		panel:OpenURL(("https://gmod-youtube.pages.dev/#/watch?v=%s"):format(Video:Data()))
 
 		panel.OnDocumentReady = function(pnl)
 			self:LoadExFunctions( pnl )
@@ -233,7 +223,7 @@ theater.RegisterService( "youtube", SERVICE )
 theater.RegisterService( "youtubelive", {
 	Name = "YouTube Live",
 	IsTimed = false,
-	Dependency = DEPENDENCY_COMPLETE,
+	NeedsCodecFix = true,
 	Hidden = true,
 	LoadProvider = CLIENT and SERVICE.LoadProvider or function() end
 } )
@@ -241,7 +231,7 @@ theater.RegisterService( "youtubelive", {
 -- theater.RegisterService( "youtubensfw", {
 -- 	Name = "YouTube NSFW",
 -- 	IsTimed = true,
--- 	Dependency = DEPENDENCY_PARTIAL,
+-- 	NeedsCodecFix = false,
 -- 	Hidden = true,
 -- 	LoadProvider = CLIENT and SERVICE.LoadProvider or function() end
 -- } )
