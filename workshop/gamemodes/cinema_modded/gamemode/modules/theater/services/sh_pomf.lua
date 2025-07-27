@@ -1,9 +1,9 @@
-local SERVICE = {}
+local SERVICE = {
+	Name = "Pomf.TV Stream",
+	IsTimed = false,
 
-SERVICE.Name = "Pomf.TV Stream"
-SERVICE.IsTimed = false
-
-SERVICE.Dependency = DEPENDENCY_COMPLETE
+	NeedsCodecFix = true
+}
 
 local THUMB_URL = "https://pomf.tv/img/streamonline/%s.jpg"
 
