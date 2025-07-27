@@ -149,7 +149,8 @@ function RequestTheaterInfo( ply, force )
 				Id = vid.id,
 				Title = vid:Title(),
 				Duration = vid:Duration(),
-				Votes = vid:GetNumVotes()
+				Votes = vid:GetNumVotes(),
+				OwnerName = vid:GetOwnerName()
 			}
 
 			-- Send the player's vote value if they have voted
