@@ -1,6 +1,3 @@
-hook.Add( "InitPostEntity", "air_odyssey_day", function()
-if !Location then return end
-
 Location.Add( "air_odyssey_day",
 {
         ["Cockpit"] =
@@ -137,5 +134,3 @@ Location.Add( "air_odyssey_day",
                 }
         },
 } )
-
-end )

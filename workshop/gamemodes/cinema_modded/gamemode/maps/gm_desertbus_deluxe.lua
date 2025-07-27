@@ -1,6 +1,3 @@
-hook.Add( "InitPostEntity", "gm_desertbus_deluxe", function()
-if !Location then return end
-
 Location.Add( "gm_desertbus_deluxe",
 {
         ["The Bus"] =
@@ -61,5 +58,3 @@ Location.Add( "gm_desertbus_deluxe",
                 }
         },
 } )
-
-end )

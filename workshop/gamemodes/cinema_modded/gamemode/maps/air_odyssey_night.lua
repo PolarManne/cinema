@@ -1,6 +1,3 @@
-hook.Add( "InitPostEntity", "air_odyssey_night", function()
-if !Location then return end
-
 Location.Add( "air_odyssey_night",
 {
         ["Cockpit"] =
@@ -136,6 +133,20 @@ Location.Add( "air_odyssey_night",
                         Height = 33,
                 }
         },
-} )
+        ["Cargo Hold"] =
+        {
 
-end )
+        Min = Vector( -464, -144, -304 ),
+        Max = Vector( -64, 166, -232 ),
+
+
+                Theater = {
+                        Name = "Cargo Hold",
+                        Flags = THEATER_HIDDEN,
+                        Pos = Vector( -64.25, 130, -232),
+                        Ang = Angle(0, -90, 0),
+                        Width = 128,
+                        Height = 72,
+                }
+        },
+} )

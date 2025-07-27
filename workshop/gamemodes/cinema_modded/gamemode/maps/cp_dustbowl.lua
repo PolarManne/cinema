@@ -1,6 +1,3 @@
-hook.Add( "InitPostEntity", "cp_dustbowl", function()
-if !Location then return end
-
 Location.Add( "cp_dustbowl",
 {
 	["Main"] =
@@ -74,5 +71,3 @@ Location.Add( "cp_dustbowl",
 		}
 	},
 } )
-
-end )

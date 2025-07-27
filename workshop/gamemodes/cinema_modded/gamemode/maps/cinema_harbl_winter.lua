@@ -2,7 +2,7 @@
 Location.Add( "cinema_harbl_winter", {
 	[ "Rooftop" ] =
 	{
-		Min = Vector( 5216, 2796, 1984 ),
+		Min = Vector( 5216, 2696, 1984 ),
 		Max = Vector( 6528, 3776, 3040 ),
 	},
 	[ "Central Theater" ] =

@@ -1,6 +1,3 @@
-hook.Add( "InitPostEntity", "fnaf1remakeday", function()
-if !Location then return end
-
 Location.Add( "fnaf1remakeday",
 {
 	["Security"] =
@@ -19,5 +16,3 @@ Location.Add( "fnaf1remakeday",
 		}
 	},
 } )
-
-end )

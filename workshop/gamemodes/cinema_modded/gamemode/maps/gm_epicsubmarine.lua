@@ -1,6 +1,3 @@
-hook.Add( "InitPostEntity", "gm_epicsubmarine", function()
-if !Location then return end
-
 Location.Add( "gm_epicsubmarine",
 {
 	["Sub"] =
@@ -20,5 +17,3 @@ Location.Add( "gm_epicsubmarine",
 		}
 	},
 } )
-
-end )

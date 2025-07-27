@@ -61,11 +61,11 @@ Location.Add( "gm_aquateenhouse",
 	["Frylock's Room"] =
 	{
 		Min = Vector( 752, 2134, 144),
-		Max = Vector( 1024, 2566.25, 284),
+		Max = Vector( 1024, 2566, 284),
 		Theater = {
 			Name = "Frylock's Room",
 			Flags = THEATER_PRIVATE,
-			Pos = Vector( 1024, 2134, 284 ),
+			Pos = Vector( 1024, 2134.25, 284 ),
 			Ang = Angle(0,180,0),
 			Width = 272,
 			Height = 140,

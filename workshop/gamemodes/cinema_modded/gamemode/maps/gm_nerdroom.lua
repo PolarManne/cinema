@@ -1,6 +1,3 @@
-hook.Add( "InitPostEntity", "gm_nerdroom", function()
-if !Location then return end
-
 Location.Add( "gm_nerdroom",
 {
 	["Cave"] =
@@ -26,5 +23,3 @@ Location.Add( "gm_nerdroom",
 		}
 	},
 } )
-
-end )
