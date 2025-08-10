@@ -63,20 +63,14 @@ function PLAYER:Loadout()
 	self.Player:RemoveAllAmmo()
 	self.Player:SwitchToDefaultWeapon()
 
---	using WUMA to manage loadouts now, keeping this here as a reference
-
---        self.Player:Give("weapon_popcorn")
---        self.Player:Give("weapon_catspack_maxwell")
---        self.Player:Give("weapon_catspack_mars")
---        self.Player:Give("weapon_catspack_valenok")
---        self.Player:Give("weapon_catspack_vasilisa")
---        self.Player:Give("weapon_hands")
---        self.Player:Give("weapon_vape_custom")
---        self.Player:Give("weapon_vape_helium")
---        self.Player:Give("weapon_vape_american")
---        self.Player:Give("wos_fortnite_dancer")
---        self.Player:Give("billbert_teddybear")
---	self.Player:Give("weapon_bugbait")
+	-- Give popcorn if ConVar is enabled and weapon exists
+	if GetConVar("cinema_spawn_popcorn"):GetBool() then
+		if weapons.Get("weapon_popcorn") then
+			self.Player:Give("weapon_popcorn")
+		else
+			print("Warning: weapon_popcorn does not exist!")
+		end
+	end
 
 end
 
