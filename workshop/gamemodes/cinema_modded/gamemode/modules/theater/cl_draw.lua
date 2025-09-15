@@ -114,10 +114,19 @@ function DrawVideoInfo( w, h, scale )
 	surface.DrawRect(0, -2, w, 4)
 
 	-- Title
-	if LastTitle ~= translations:Format( Video:Title() ) or WasFullscreen ~= theater.Fullscreen then
-		LastTitle = translations:Format( Video:Title() )
-		WasFullscreen = theater.Fullscreen
-		Title = string.reduce( LastTitle, "VideoInfoMedium", w )
+	local videoTitle = Video:Title()
+	if videoTitle == "NoVideoPlaying" then
+		if LastTitle ~= translations:Format( videoTitle ) or WasFullscreen ~= theater.Fullscreen then
+			LastTitle = translations:Format( videoTitle )
+			WasFullscreen = theater.Fullscreen
+			Title = string.reduce( LastTitle, "VideoInfoMedium", w )
+		end
+	else
+		if LastTitle ~= videoTitle or WasFullscreen ~= theater.Fullscreen then
+			LastTitle = videoTitle
+			WasFullscreen = theater.Fullscreen
+			Title = string.reduce( LastTitle, "VideoInfoMedium", w )
+		end
 	end
 	draw.TheaterText( Title, "VideoInfoMedium", 10, 10, Color(255,255,255,255), TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP )
 

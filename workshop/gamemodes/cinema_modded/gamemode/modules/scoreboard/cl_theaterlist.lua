@@ -169,7 +169,13 @@ function THEATER:Update()
 
 	self.Title:SetText( string.upper( Theater:Name() ) )
 	self.Time:SetText( Theater:VideoTime() )
-	self.Video:SetText( translations:Format( Theater:VideoTitle() ) )
+
+	local videoTitle = Theater:VideoTitle()
+	if videoTitle == "NoVideoPlaying" then
+		self.Video:SetText( translations:Format( videoTitle ) )
+	else
+		self.Video:SetText( videoTitle )
+	end
 
 end
 
