@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "Public theater requests are limited to %s seconds in length.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} has voted to skip {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} has been added to the queue.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "The current map is unsupported by the Cinema gamemode.",
