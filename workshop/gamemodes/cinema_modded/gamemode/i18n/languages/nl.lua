@@ -11,7 +11,7 @@ return {
 	Cinema = "CINEMA",
 	Volume = "Volume",
 	Voteskips = "Stemmen om over te slaan",
-	Loading = "Laden...",
+	Loading = "",
 	Invalid = "[ONGELDIG]",
 	NoVideoPlaying = "Geen afspelende video",
 	Cancel = "Annuleer",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "Verzoeken in openbare bioscopen hebben een tijdslimiet van $s seconde(n)",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} heeft gestemd om {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}over te slaan.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} is aan de rij toegevoegd",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "De huidige map wordt niet ondersteunt door de Cinema gamemode",

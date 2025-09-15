@@ -11,7 +11,7 @@ return {
 	Cinema = "电影院",
 	Volume = "音量",
 	Voteskips = "投票跳过",
-	Loading = "加载中...",
+	Loading = "",
 	Invalid = "[无效]",
 	NoVideoPlaying = "当前没有视频播放",
 	Cancel = "取消",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "公共影院只能点播 %s 秒内的视频",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} 投票跳过： {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} 已点播",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "当前地图不支持Cinema模式",

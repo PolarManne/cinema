@@ -11,7 +11,7 @@ return {
 	Cinema = "CINEMA",
 	Volume = "Loudness",
 	Voteskips = "Mutinies",
-	Loading = "Sailing...",
+	Loading = "",
 	Invalid = "[INVALID]",
 	NoVideoPlaying = "No ships sailing",
 	Cancel = "Abandon ship",
@@ -35,6 +35,8 @@ return {
 	Theater_PublicVideoLength = "New ship requests may only be %s second(s) in length.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} sunk the {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}!",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} sailed into harbour.",
+	Theater_VoteSkipDisabled = "The captain has tied the mutineers to the mast.",
+
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "The current map be unsupported by the Cinema gamemode",

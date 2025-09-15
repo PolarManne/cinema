@@ -11,7 +11,7 @@ return {
 	Cinema = "CINEMA",
 	Volume = "Volume",
 	Voteskips = "Voteskips",
-	Loading = "Loading...",
+	Loading = "",
 	Invalid = "[INVALID]",
 	NoVideoPlaying = "No video playing",
 	Cancel = "Cancel",

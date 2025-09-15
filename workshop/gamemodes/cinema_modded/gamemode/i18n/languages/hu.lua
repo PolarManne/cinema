@@ -11,7 +11,7 @@ return {
 	Cinema = "MOZI",
 	Volume = "Hangerő",
 	Voteskips = "Leszavazások",
-	Loading = "Betöltés...",
+	Loading = "",
 	Invalid = "[ÉRVÉNYTELEN]",
 	NoVideoPlaying = "Nincs videó lejátszás alatt",
 	Cancel = "Mégse",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "A nyilvános termek kérései korlátozva vannak %s másodperc hosszúságra.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} szavazott, hogy továbblépjen a következő videóra.{{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} hozzáadva a sorhoz.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "A jelenlegi térképet nem támogatja a Mozi játékmód.",

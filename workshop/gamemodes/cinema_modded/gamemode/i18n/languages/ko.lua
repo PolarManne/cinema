@@ -11,7 +11,7 @@ return {
 	Cinema = "시네마",
 	Volume = "음량",
 	Voteskips = "투표 건너뛰기",
-	Loading = "불러오는 중...",
+	Loading = "",
 	Invalid = "[인식 불가능]",
 	NoVideoPlaying = "재생 중인 비디오 없음",
 	Cancel = "취소",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "공용 극장은 %s 초의 길이 제한이 있습니다.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} 님이 건너뛰기 투표를 하였습니다. {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} 비디오가 대기열에 추가되었습니다.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "선택하신 맵은 시네마 게임 모드에 호환되지 않습니다.",

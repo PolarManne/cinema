@@ -11,7 +11,7 @@ return {
 	Cinema = "CINEMA",
 	Volume = "Громкость",
 	Voteskips = "Пропуск",
-	Loading = "Загрузка...",
+	Loading = "",
 	Invalid = "[НЕПРАВИЛЬНО]",
 	NoVideoPlaying = "Нет видео",
 	Cancel = "Отмена",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "Максимальный лимит видео в публичном театре %s сек. в длину.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} проголосовал за пропуск {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} было добавлено в очередь.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "Текущая карта не поддерживается игровым режимом Cinema",

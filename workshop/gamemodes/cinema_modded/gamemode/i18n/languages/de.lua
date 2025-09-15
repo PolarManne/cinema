@@ -10,7 +10,7 @@ return {
 	-- Common UI elements
 	Volume = "Lautstärke",
 	Voteskips = "Abwählungen",
-	Loading = "Lade...",
+	Loading = "",
 	Invalid = "[UNGÜLTIG]",
 	NoVideoPlaying = "Kein aktives Video",
 	Cancel = "Abbrechen",
@@ -34,6 +34,7 @@ return {
 	Theater_PublicVideoLength = "Videowünsche in öffentlichen Theatern sind auf %s Sekunden begrenzt.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} hat dafür gestimmt, das Video zu überspringen {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} wurde zur Warteschlange hinzugefügt.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "Die aktuelle Map wird nicht vom Cinema Gamemode unterstützt.",

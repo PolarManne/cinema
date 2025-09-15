@@ -11,7 +11,7 @@ return {
 	Cinema = "CINEMA",
 	Volume = "Hlasitost",
 	Voteskips = "Hlasy o přeskočení",
-	Loading = "Načítání...",
+	Loading = "",
 	Invalid = "[NEPLATNÝ]",
 	NoVideoPlaying = "Nepřehrává se žádné video",
 	Cancel = "Zrušit",
@@ -35,6 +35,8 @@ return {
 	Theater_PublicVideoLength = "Videa vyžádaná ve veřejných kinech jsou omezena na maximální délku %s sekund.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} hlasoval/a pro přeskočení {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} bylo přidáno do fronty.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
+
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "Současná mapa není podporována herním módem Cinema.",

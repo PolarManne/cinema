@@ -10,7 +10,7 @@ return {
 	-- Common UI elements
 	Volume = "Volumen",
 	Voteskips = "Omitido por votos",
-	Loading = "Cargando...",
+	Loading = "",
 	Invalid = "[INVALIDO]",
 	NoVideoPlaying = "No hay videos en seguimiento",
 	Cancel = "Cancelar",
@@ -34,6 +34,7 @@ return {
 	Theater_PublicVideoLength = "Las solicitudes en teatros públicos son limitados a %s segundo(s) largo de video.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} ha votado para omitir {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} fue añadido a la lista.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "Este mapa no está respaldado por el modo de juego Cinema.",

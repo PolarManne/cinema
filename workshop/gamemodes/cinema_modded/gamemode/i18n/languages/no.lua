@@ -11,7 +11,7 @@ return {
 	Cinema = "KINO",
 	Volume = "Volum",
 	Voteskips = "Har stemt for å hoppe over",
-	Loading = "Lader...",
+	Loading = "",
 	Invalid = "[UGYLDIG]",
 	NoVideoPlaying = "Ingen Video Spiller",
 	Cancel = "Avbryt",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "Forespørsler i offentlige kinoer har en frist på %s sekund(er).",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} har stemt for å hoppe over {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} har blitt lagt til i køen.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "Den gjeldene banen er ikke støtter av Cinema gamemode",

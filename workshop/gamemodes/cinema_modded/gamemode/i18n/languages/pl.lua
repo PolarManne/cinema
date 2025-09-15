@@ -11,7 +11,7 @@ return {
 	Cinema = "KINO",
 	Volume = "Głośność",
 	Voteskips = "Voteskips",
-	Loading = "Ładowanie...",
+	Loading = "",
 	Invalid = "[NIEPRAWIDŁOWE]",
 	NoVideoPlaying = "Brak odtwarzanego filmu",
 	Cancel = "Anuluj",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "Żądania w publicznych salach kinowych są ograniczone do długości %s sekund.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} zagłosował na pominięcie {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} zostało dodane do kolejki.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "Obecna mapa jest niewspierana przez tryb gry Cinema",

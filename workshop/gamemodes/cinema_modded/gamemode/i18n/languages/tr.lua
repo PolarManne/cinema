@@ -11,7 +11,7 @@ return {
 	Cinema = "CINEMA",
 	Volume = "Ses",
 	Voteskips = "Gecmek icin oyla",
-	Loading = "Yukleniyor...",
+	Loading = "",
 	Invalid = "[Bilinmiyor]",
 	NoVideoPlaying = "Herhangi bir video oynamiyor",
 	Cancel = "Iptal",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "Bu acik tiyatrodaki videolar sadece %s saniye oynatilabilir.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} adli kisi videoyu gecmek icin oylama baslatti {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} adli kisi kuyruga girdi.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "Suanki harita Cinema tarafindan desteklenmiyor",

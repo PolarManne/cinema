@@ -11,7 +11,7 @@ return {
 	Cinema = "CINEMA",
 	Volume = "Äänenvoimakkuus",
 	Voteskips = "Äänestys ohittamiseen",
-	Loading = "Lataa...",
+	Loading = "",
 	Invalid = "[VIRHEELLINEN]",
 	NoVideoPlaying = "Ei videota käynnissä",
 	Cancel = "Peruuta",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "Julkisen teatterin videopyynnöt ovat rajoitettu %s sekunnin pituuteen.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} on äänestänyt ohittamista {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} on lisätty videojonoon.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "Nykyinen kartta ei tue Cinema-pelimuotoa.",

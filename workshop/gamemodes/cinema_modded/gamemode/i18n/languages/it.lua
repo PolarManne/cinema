@@ -11,7 +11,7 @@ return {
 	Cinema = "CINEMA",
 	Volume = "Volume",
 	Voteskips = "Vota per saltare",
-	Loading = "Caricamento...",
+	Loading = "",
 	Invalid = "[NON VALIDO]",
 	NoVideoPlaying = "Nessun video in riproduzione",
 	Cancel = "Cancella",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "Le richieste in un teatro publico sono limitate ad una durata di %s second(s) secondi.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} ha votato per saltare {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} è stato aggiunto alla coda.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "La mappa attuale non è supportata da cinema gamemode",

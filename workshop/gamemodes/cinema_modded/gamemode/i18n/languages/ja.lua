@@ -11,7 +11,7 @@ return {
 	Cinema = "CINEMA",
 	Volume = "音量",
 	Voteskips = "スキップの投票数",
-	Loading = "読み込み中...",
+	Loading = "",
 	Invalid = "【無効】",
 	NoVideoPlaying = "再生中の動画はありません。",
 	Cancel = "キャンセル",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "Public theaterは%s秒に1度リクエストできます。",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}}は{{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}をスキップ投票しました。",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}}はキューを追加しました。",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "このマップはCinema gamemodeに対応していません。",

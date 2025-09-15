@@ -11,7 +11,7 @@ return {
 	Cinema = "CINEMA",
 	Volume = "Volume",
 	Voteskips = "Votes de passage",
-	Loading = "Chargement...",
+	Loading = "",
 	Invalid = "[INVALIDE]",
 	NoVideoPlaying = "Pas de vidéo en lecture",
 	Cancel = "Annuler",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "Les requêtes de théatres publics sont limitées à %s seconde(s).",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} a voté pour passer {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} a été ajoutée à la liste d'attente.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "La carte actuelle n'est pas supportée par le mode de jeu Cinema",

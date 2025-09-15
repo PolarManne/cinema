@@ -11,7 +11,7 @@ return {
 	Cinema = "CINEMA",
 	Volume = "Volume",
 	Voteskips = "Pular?",
-	Loading = "Carregando...",
+	Loading = "",
 	Invalid = "[INVÁLIDO]",
 	NoVideoPlaying = "Nenhum vídeo sendo reproduzido",
 	Cancel = "Cancelar",
@@ -35,6 +35,7 @@ return {
 	Theater_PublicVideoLength = "Solicitações feitas em teatros públicos são limitadas a %s segundos de duração.",
 	Theater_PlayerVoteSkipped = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} votou para pular {{rgb:158,37,33}}(%s/%s){{rgb:200,200,200}}.",
 	Theater_VideoAddedToQueue = "{{rgb:158,37,33}}%s{{rgb:200,200,200}} foi adicionado à fila.",
+	Theater_VoteSkipDisabled = "Voteskipping is currently disabled.",
 
 	-- Warning messages
 	Warning_Unsupported_Line1 = "O mapa atual é incompatível com o modo de jogo Cinema.",
