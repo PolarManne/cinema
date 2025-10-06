@@ -394,7 +394,7 @@ function SpawnPokerTables()
 		end
 
 		local tables = {
-			{pos = Vector(2608, 1031, -6), ang = Angle(0, 90, 0)},
+			{pos = Vector(2608, -1031, -6), ang = Angle(0, 90, 0)},
 			{pos = Vector(1862, -2149, 95), ang = Angle(0, 90, 0)},
 			{pos = Vector(1266, -2149, 100), ang = Angle(0, 90, 0)},
 			{pos = Vector(678, -2093, 100), ang = Angle(0, 90, 0)},
