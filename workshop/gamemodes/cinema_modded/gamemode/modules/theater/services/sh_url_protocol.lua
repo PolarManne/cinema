@@ -208,9 +208,6 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 	end)
 end
 
--- Register the multi-protocol service
-theater.RegisterService( "url_protocol", SERVICE )
-
 -- Register live streaming variant
 theater.RegisterService( "url_protocol_live", {
 	Name = "URL (Protocol, Live)",
