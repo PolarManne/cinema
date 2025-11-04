@@ -199,7 +199,6 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 		local urlParsed = ParseURL(data:Data())
 		local protocol = GetProtocol(urlParsed) or "unknown"
 		info.title = ("%s: %s"):format(protocol:upper(), data:Data())
-		info.type = "url_protocol_live"
 		info.duration = 0
 
 		if onSuccess then
@@ -208,9 +207,9 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 	end)
 end
 
--- Register live streaming variant
-theater.RegisterService( "url_protocol_live", {
-	Name = "URL (Protocol, Live)",
+-- Register the multi-protocol service
+theater.RegisterService( "url_protocol", {
+	Name = "URL (Protocol)",
 	IsTimed = false,
 	NeedsCodecFix = true,
 	Hidden = true,
