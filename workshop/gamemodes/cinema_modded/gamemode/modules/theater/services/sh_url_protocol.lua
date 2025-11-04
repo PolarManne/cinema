@@ -199,13 +199,8 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 		local urlParsed = ParseURL(data:Data())
 		local protocol = GetProtocol(urlParsed) or "unknown"
 		info.title = ("%s: %s"):format(protocol:upper(), data:Data())
-
-		if metadata.live then
-			info.type = "url_protocol_live"
-			info.duration = 0
-		else
-			info.duration = math.Round(tonumber(metadata.duration) or 0)
-		end
+		info.type = "url_protocol_live"
+		info.duration = 0
 
 		if onSuccess then
 			pcall(onSuccess, info)
