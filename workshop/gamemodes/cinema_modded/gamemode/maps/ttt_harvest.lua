@@ -352,3 +352,33 @@ if SERVER then
 	RELOADED = true
 
 end
+
+function SpawnPokerTables()
+        if SERVER then
+                for k, v in pairs(ents.FindByClass("ent_poker_game")) do
+                        v:Remove()
+                end
+
+                -- protip: subtract 64 from the z value for getpos to put it on the floor
+                local tables = {
+                        {pos = Vector(0, 0, 39), ang = Angle(0, 90, 0)},
+                }
+
+                for _, config in ipairs(tables) do
+                        local table = ents.Create("ent_poker_game")
+                        table:Spawn()
+                        table:Activate()
+                        table:SetPos(config.pos)
+                        table:SetAngles(config.ang)
+                        table:SetGameState(-1)
+                        table:SetGameType(1)
+                        table:SetBetType(0)
+                        table:SetMaxPlayers(8)
+                        table:SetEntryBet(100)
+                        table:SetStartValue(1000)
+                        table:GetPhysicsObject():EnableMotion(false)
+                end
+        end
+end
+
+hook.Add( "InitPostEntity", "cinema_SpawnPokerTables", SpawnPokerTables )

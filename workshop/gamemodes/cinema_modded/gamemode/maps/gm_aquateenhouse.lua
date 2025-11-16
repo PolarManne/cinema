@@ -228,31 +228,31 @@ Location.Add( "gm_aquateenhouse",
 } )
 
 function SpawnPokerTables()
-	if SERVER then
-			for k, v in pairs(ents.FindByClass("ent_poker_game")) do
-					v:Remove()
-			end
+        if SERVER then
+                for k, v in pairs(ents.FindByClass("ent_poker_game")) do
+                        v:Remove()
+                end
 
-			local poker_table = ents.Create( "ent_poker_game" )
+                -- protip: subtract 64 from the z value for getpos to put it on the floor
+                local tables = {
+                        {pos = Vector(580, 1650, 144), ang = Angle(0, 90, 0)},
+                }
 
-			poker_table:Spawn()
-			poker_table:Activate()
-
-			-- protip: subtract 64 from the z value for getpos to put it on the floor
-			poker_table:SetPos( Vector(580, 1650, 144) )
-			poker_table:SetAngles( Angle(0, 90, 0) )
-
-			poker_table:SetGameState(-1)
-			poker_table:SetGameType(1)
-			poker_table:SetBetType(0)
-			poker_table:SetMaxPlayers(8)
-			poker_table:SetEntryBet(100)
-			poker_table:SetStartValue(1000)
-
-			local phys = poker_table:GetPhysicsObject()
-			phys:EnableMotion( false )
-
-	end
+                for _, config in ipairs(tables) do
+                        local table = ents.Create("ent_poker_game")
+                        table:Spawn()
+                        table:Activate()
+                        table:SetPos(config.pos)
+                        table:SetAngles(config.ang)
+                        table:SetGameState(-1)
+                        table:SetGameType(1)
+                        table:SetBetType(0)
+                        table:SetMaxPlayers(8)
+                        table:SetEntryBet(100)
+                        table:SetStartValue(1000)
+                        table:GetPhysicsObject():EnableMotion(false)
+                end
+        end
 end
 
 hook.Add( "InitPostEntity", "cinema_SpawnPokerTables", SpawnPokerTables )

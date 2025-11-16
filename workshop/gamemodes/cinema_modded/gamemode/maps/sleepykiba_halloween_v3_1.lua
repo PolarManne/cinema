@@ -55,7 +55,7 @@ Location.Add( "sleepykiba_halloween_v3_1",
 		Theater = {
 			Name = "Public Theater 1",
 			Flags = THEATER_REPLICATED,
-			Pos = Vector( 2102, -2303, 401 ),
+			Pos = Vector( 2102, -2302.75, 401 ),
 			Ang = Angle(0,180,0),
 			Width = 480,
 			Height = 270,
@@ -64,7 +64,7 @@ Location.Add( "sleepykiba_halloween_v3_1",
 	["Public Theater 2"] =
 	{
 		
-		Min = Vector( 984, -2306, 101 ),
+		Min = Vector( 984, -2306, 100 ),
 		Max = Vector( 1549, -1614, 440 ),
 
 		Theater = {
@@ -407,8 +407,6 @@ function SpawnPokerTables()
 			{pos = Vector(-5555, -1624.5, 1701), ang = Angle(0, 90, 0)},
 			{pos = Vector(-5645, -1619, 1405), ang = Angle(0, 90, 0)},
 			{pos = Vector(-7200, -1618, 1405), ang = Angle(0, 90, 0)},
-			{pos = Vector(-6267.25, -1429.5, 1313), ang = Angle(0, 90, 0)},
-			{pos = Vector(-6535.25, -1429.5, 1313), ang = Angle(0, 90, 0)},
 			{pos = Vector(9662.5, 1546, 1737), ang = Angle(0, 90, 0)},
 			{pos = Vector(9823.5, 1546, 1737), ang = Angle(0, 90, 0)},
 			{pos = Vector(9823.5, 1324, 1737), ang = Angle(0, 90, 0)},

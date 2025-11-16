@@ -360,3 +360,53 @@ Location.Add( "sleepykiba_v3",
 		}
 	},
 } )
+
+function SpawnPokerTables()
+        if SERVER then
+                for k, v in pairs(ents.FindByClass("ent_poker_game")) do
+                        v:Remove()
+                end
+
+                local tables = {
+                        {pos = Vector(2608, -1031, -6), ang = Angle(0, 90, 0)},
+                        {pos = Vector(1862, -2149, 95), ang = Angle(0, 90, 0)},
+                        {pos = Vector(1266, -2149, 100), ang = Angle(0, 90, 0)},
+                        {pos = Vector(678, -2093, 100), ang = Angle(0, 90, 0)},
+                        {pos = Vector(-435, -1748, 102), ang = Angle(0, 90, 0)},
+                        {pos = Vector(-763, 504, 3307), ang = Angle(0, 90, 0)},
+                        {pos = Vector(-1362, 504, 3307), ang = Angle(0, 90, 0)},
+                        {pos = Vector(-1038, 2347.5, 3287), ang = Angle(0, 90, 0)},
+                        {pos = Vector(-439, 2347.5, 3287), ang = Angle(0, 90, 0)},
+                        {pos = Vector(-7253.5, -1624.5, 1700), ang = Angle(0, 90, 0)},
+                        {pos = Vector(-5555, -1624.5, 1701), ang = Angle(0, 90, 0)},
+                        {pos = Vector(-5645, -1619, 1405), ang = Angle(0, 90, 0)},
+                        {pos = Vector(-7200, -1618, 1405), ang = Angle(0, 90, 0)},
+                        {pos = Vector(9662.5, 1546, 1737), ang = Angle(0, 90, 0)},
+                        {pos = Vector(9823.5, 1546, 1737), ang = Angle(0, 90, 0)},
+                        {pos = Vector(9823.5, 1324, 1737), ang = Angle(0, 90, 0)},
+                        {pos = Vector(9662.5, 1324, 1737), ang = Angle(0, 90, 0)},
+--                        {pos = Vector(-3074, -4428, -116), ang = Angle(0, 90, 0)},
+                        {pos = Vector(1454, 7826, 807), ang = Angle(0, 90, 0)},
+                        {pos = Vector(5922.5, -314.5, 1588), ang = Angle(0, 90, 0)},
+                        {pos = Vector(9752.5, 12601.5, 2496), ang = Angle(0, 90, 0)},
+                        {pos = Vector(8232.5, 5452, 1476), ang = Angle(0, 90, 0)}
+                }
+
+                for _, config in ipairs(tables) do
+                        local table = ents.Create("ent_poker_game")
+                        table:Spawn()
+                        table:Activate()
+                        table:SetPos(config.pos)
+                        table:SetAngles(config.ang)
+                        table:SetGameState(-1)
+                        table:SetGameType(1)
+                        table:SetBetType(0)
+                        table:SetMaxPlayers(8)
+                        table:SetEntryBet(100)
+                        table:SetStartValue(1000)
+                        table:GetPhysicsObject():EnableMotion(false)
+                end
+        end
+end
+
+hook.Add( "InitPostEntity", "cinema_SpawnPokerTables", SpawnPokerTables )
