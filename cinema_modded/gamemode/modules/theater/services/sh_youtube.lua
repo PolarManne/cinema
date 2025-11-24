@@ -17,14 +17,21 @@ if (CLIENT) then
 	]]
 
 	local function playerURL(path)
-		return ("https://purrcoding.pages.dev/cinema/%s"):format(path)
+		return ("https://purrcoding.b-cdn.net/cinema/%s"):format(path)
 	end
 
 	function SERVICE:LoadProvider( Video, panel )
-
-		panel:OpenURL(playerURL("youtube.html") ..
+		local url = playerURL("youtube.html") ..
 			("?v=%s"):format(Video:Data())
-		)
+
+		if self.IsTimed then
+			local startTime = math.max(0, math.Round(CurTime() - Video:StartTime()))
+			if startTime > 0 then
+				url = url .. ("&t=%d"):format(startTime)
+			end
+		end
+
+		panel:OpenURL(url)
 
 		panel.OnDocumentReady = function(pnl)
 			self:LoadExFunctions( pnl )
@@ -60,14 +67,14 @@ function SERVICE:GetURLInfo( url )
 	elseif url.path and url.path:match("^/v/([%a%d-_]+)") then
 		info.Data = url.path:match("^/v/([%a%d-_]+)")
 
-		-- http://www.youtube.com/shorts/(videoId)
+	-- http://www.youtube.com/shorts/(videoId)
 	elseif url.path and url.path:match("^/shorts/([%a%d-_]+)") then
 		info.Data = url.path:match("^/shorts/([%a%d-_]+)")
 
 	-- http://youtu.be/(videoId)
 	elseif url.host:match("youtu.be") and
 		url.path and url.path:match("^/([%a%d-_]+)$") and
-		( not info.query or #info.query == 0 ) then -- short url
+		( not url.query or #url.query == 0 ) then -- short url
 		info.Data = url.path:match("^/([%a%d-_]+)$")
 	end
 
@@ -92,7 +99,7 @@ function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 
 		local info = {}
 		info.title = metadata.title
-		info.thumbnail = ("https://img.youtube.com/vi/(%s)/hqdefault.jpg"):format(data)
+		info.thumbnail = ("https://img.youtube.com/vi/%s/mqdefault.jpg"):format(data:Data())
 
 		if metadata.isLive then
 			info.type = "youtubelive"
