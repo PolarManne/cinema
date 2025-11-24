@@ -28,16 +28,16 @@ end
 function draw.HTMLTexture( panel, w, h )
 	if not (panel and IsValid(panel) and w and h) then return end
 
-	-- Initialize cache on first use
-	if not panel._cachedWidth then
+	-- Recalculate cache if dimensions changed
+	if not panel._cachedWidth or panel._cachedTargetW ~= w or panel._cachedTargetH ~= h then
 		local pw, ph = panel:GetSize()
-		local w_scalar = w / pw
-		local h_scalar = h / ph
-		local pw_adjusted = pw * (math.power2(pw) / pw)
-		local ph_adjusted = ph * (math.power2(ph) / ph)
+		local pw_adjusted = math.power2(pw)
+		local ph_adjusted = math.power2(ph)
 
-		panel._cachedWidth = w_scalar * pw_adjusted
-		panel._cachedHeight = h_scalar * ph_adjusted
+		panel._cachedWidth = w * (pw_adjusted / pw)
+		panel._cachedHeight = h * (ph_adjusted / ph)
+		panel._cachedTargetW = w
+		panel._cachedTargetH = h
 	end
 
 	-- Update texture at throttled rate
