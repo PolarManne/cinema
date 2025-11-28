@@ -16,8 +16,11 @@ local offset = 0
 
 -- 16:9 aspect ratio FOV calculation
 local BaseHorizontalFOV = 90
-local AspectRatio = 16 / 9
-local VerticalFOV = math.deg(2 * math.atan(math.tan(math.rad(BaseHorizontalFOV / 2)) / AspectRatio))
+--[[ this doesn't work right because it applies the fov calculation on top of the existing aspect ratio
+ local AspectRatio = 16 / 9
+ local VerticalFOV = math.deg(2 * math.atan(math.tan(math.rad(BaseHorizontalFOV / 2)) / AspectRatio))
+]]--
+local VerticalFOV = 90
 
 function ENT:Initialize()
 	local mins, maxs = self:GetModelBounds()
