@@ -50,21 +50,36 @@ local function PrecomputeAllCaches()
 		MsgN("Location: Pre-computing caches for ", table_Count(CurrentMapLocations), " locations")
 	end
 
-	-- Pre-compute location caches
+	-- Pre-compute location caches.
+	-- If a location provides a `Volumes` table (array of {Min, Max}) we index each
+	-- volume separately into the spatial grid. If not provided, fall back to the
+	-- legacy `Min`/`Max` box for backwards compatibility.
 	for name, loc in pairs(CurrentMapLocations) do
 		LocationCache[loc.Index] = {name = name, data = loc}
 		LocationNameCache[loc.Index] = name
 		PlayersByLocation[loc.Index] = {}
 
-		-- Pre-compute spatial grid
-		local minX, minY = math_floor(loc.Min.x / GridSize), math_floor(loc.Min.y / GridSize)
-		local maxX, maxY = math_floor(loc.Max.x / GridSize), math_floor(loc.Max.y / GridSize)
+		local volumes = {}
+		if istable(loc.Volumes) and #loc.Volumes > 0 then
+			volumes = loc.Volumes
+		else
+			volumes = {{ Min = loc.Min, Max = loc.Max }}
+		end
 
-		for x = minX, maxX do
-			for y = minY, maxY do
-				local key = x .. "," .. y
-				SpatialGrid[key] = SpatialGrid[key] or {}
-				table_insert(SpatialGrid[key], {name = name, data = loc})
+		-- Index each volume into the spatial grid. Each grid candidate contains
+		-- a reference to the parent location (`data`) and the specific `volume`.
+		for _, vol in ipairs(volumes) do
+			if not (vol and vol.Min and vol.Max) then continue end
+
+			local minX, minY = math_floor(vol.Min.x / GridSize), math_floor(vol.Min.y / GridSize)
+			local maxX, maxY = math_floor(vol.Max.x / GridSize), math_floor(vol.Max.y / GridSize)
+
+			for x = minX, maxX do
+				for y = minY, maxY do
+					local key = x .. "," .. y
+					SpatialGrid[key] = SpatialGrid[key] or {}
+					table_insert(SpatialGrid[key], {name = name, data = loc, volume = vol})
+				end
 			end
 		end
 	end
@@ -203,7 +218,9 @@ function Find(ply)
 
 	DebugStats.cacheMisses = DebugStats.cacheMisses + 1
 
-	-- Find new location using spatial grid
+	-- Find new location using spatial grid. Candidates may reference a specific
+	-- `volume` (for multi-volume locations) or fall back to the location's
+	-- legacy `Min`/`Max` box.
 	local gridX, gridY = math_floor(pos.x / GridSize), math_floor(pos.y / GridSize)
 	local gridKey = gridX .. "," .. gridY
 	local candidates = SpatialGrid[gridKey]
@@ -212,9 +229,18 @@ function Find(ply)
 	if candidates then
 		DebugStats.spatialGridHits = DebugStats.spatialGridHits + 1
 		for _, candidate in ipairs(candidates) do
-			if pos:InBox(candidate.data.Min, candidate.data.Max) then
-				newLocation = candidate.data.Index
-				break
+			local vol = candidate.volume
+			if vol then
+				if pos:InBox(vol.Min, vol.Max) then
+					newLocation = candidate.data.Index
+					break
+				end
+			else
+				-- legacy single-box location
+				if pos:InBox(candidate.data.Min, candidate.data.Max) then
+					newLocation = candidate.data.Index
+					break
+				end
 			end
 		end
 	else
@@ -403,11 +429,19 @@ if SERVER then
 				local actualLocation = 0
 				local pos = ply:GetPos()
 
-				-- Manually check actual location
+				-- Manually check actual location (respect per-volume entries)
 				for _, candidate in pairs(SpatialGrid[math_floor(pos.x / GridSize) .. "," .. math_floor(pos.y / GridSize)] or {}) do
-					if pos:InBox(candidate.data.Min, candidate.data.Max) then
-						actualLocation = candidate.data.Index
-						break
+					local vol = candidate.volume
+					if vol then
+						if pos:InBox(vol.Min, vol.Max) then
+							actualLocation = candidate.data.Index
+							break
+						end
+					else
+						if pos:InBox(candidate.data.Min, candidate.data.Max) then
+							actualLocation = candidate.data.Index
+							break
+						end
 					end
 				end
 
