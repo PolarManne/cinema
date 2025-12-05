@@ -1,3 +1,4 @@
+resource.AddWorkshop("382155331")
 Location.Add( "fnaf2",
 {
 	["Security Room"] =
