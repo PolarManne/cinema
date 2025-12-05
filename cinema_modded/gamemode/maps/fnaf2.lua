@@ -1,4 +1,3 @@
-resource.AddWorkshop("382155331")
 Location.Add( "fnaf2",
 {
 	["Security Room"] =
@@ -103,3 +102,4 @@ Location.Add( "fnaf2",
 		}
 	},
 } )
+resource.AddWorkshop("382155331")
