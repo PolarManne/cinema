@@ -42,6 +42,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "LISTA",
+	Queue_Priority = "Marcar como prioridad",
 	Request_Video = "Solicitar video",
 	Vote_Skip = "Omitir el video",
 	Toggle_Fullscreen = "Alternar a pantalla completa",

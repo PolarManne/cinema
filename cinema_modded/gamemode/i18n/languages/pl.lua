@@ -43,6 +43,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "KOLEJKA",
+	Queue_Priority = "Oznacz jako priorytet",
 	Request_Video = "Zażądaj wideo",
 	Vote_Skip = "Głosuj pominięcie",
 	Toggle_Fullscreen = "Przełącz pełny ekran",

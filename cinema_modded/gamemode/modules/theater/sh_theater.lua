@@ -320,22 +320,57 @@ if SERVER then
 			local key
 			local Video
 
-			-- Get the next queued video if Chronological, or the video with the most votes
+			-- Get the next queued video, prioritizing videos marked as priority
 			if GetQueueMode() == QUEUE_CHRONOLOGICAL then
-				Video = self._Queue[1]
-				key = 1
-			else
-				local curVotes, topVotes = 0, 0
-
+				-- Find first priority video, or first non-priority video
 				for k, vid in pairs(self._Queue) do
-					curVotes = vid:GetNumVotes()
-
-					if ( (not Video) or -- first index
-						( curVotes > topVotes ) or -- more votes
-						( (curVotes == topVotes) and (vid:RequestTime() < Video:RequestTime()) ) ) then -- earlier request
+					if vid:IsPriority() then
 						Video = vid
 						key = k
-						topVotes = curVotes
+						break
+					end
+				end
+				
+				if not Video then
+					Video = self._Queue[1]
+					key = 1
+				end
+			else
+				local curVotes, topVotes = 0, 0
+				local priorityVideo = nil
+				local priorityKey = nil
+
+				-- First pass: find highest voted priority video
+				for k, vid in pairs(self._Queue) do
+					if vid:IsPriority() then
+						curVotes = vid:GetNumVotes()
+
+						if ( (not priorityVideo) or -- first index
+							( curVotes > topVotes ) or -- more votes
+							( (curVotes == topVotes) and (vid:RequestTime() < priorityVideo:RequestTime()) ) ) then -- earlier request
+							priorityVideo = vid
+							priorityKey = k
+							topVotes = curVotes
+						end
+					end
+				end
+
+				-- Use priority video if found, otherwise find highest voted non-priority video
+				if priorityVideo then
+					Video = priorityVideo
+					key = priorityKey
+				else
+					topVotes = 0
+					for k, vid in pairs(self._Queue) do
+						curVotes = vid:GetNumVotes()
+
+						if ( (not Video) or -- first index
+							( curVotes > topVotes ) or -- more votes
+							( (curVotes == topVotes) and (vid:RequestTime() < Video:RequestTime()) ) ) then -- earlier request
+							Video = vid
+							key = k
+							topVotes = curVotes
+						end
 					end
 				end
 			end
@@ -614,6 +649,26 @@ if SERVER then
 
 					table.remove(self._Queue, k)
 
+				end
+
+				break
+
+			end
+		end
+
+	end
+
+	function THEATER:ToggleVideoPriority( ply, id )
+
+		id = tonumber(id)
+		if not IsValid(ply) or not id then return end
+
+		for _, vid in pairs(self._Queue) do
+			if vid.id == id then
+
+				-- Toggle priority if player is theater owner or an admin
+				if (self:GetOwner() == ply) or ply:IsAdmin() then
+					vid:SetPriority(not vid:IsPriority())
 				end
 
 				break

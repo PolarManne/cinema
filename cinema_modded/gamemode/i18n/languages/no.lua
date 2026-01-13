@@ -43,6 +43,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "KØ",
+	Queue_Priority = "Merk som prioritet",
 	Request_Video = "Spør om en video",
 	Vote_Skip = "Stem for å hoppe over",
 	Toggle_Fullscreen = "Veksle mellom fullskjerm",

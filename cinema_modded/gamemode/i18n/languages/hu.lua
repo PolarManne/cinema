@@ -43,6 +43,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "LEJÁTSZÁSI SOR",
+	Queue_Priority = "Prioritásként megjelöl",
 	Request_Video = "Videó kérése",
 	Vote_Skip = "Szavazás továbblépésről",
 	Toggle_Fullscreen = "Váltás teljes képernyőre",

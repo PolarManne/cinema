@@ -288,6 +288,15 @@ else
 
 	end )
 
+	TheaterPrivilegedCommand( "cinema_video_priority", function( Theater, ply, cmd, args )
+
+		local id = tonumber(args[1])
+		if not id then return end
+
+		Theater:ToggleVideoPriority(ply, id)
+
+	end )
+
 	TheaterPrivilegedCommand( "cinema_reset", function( Theater, ply, cmd, args )
 
 		if not ply:IsAdmin() then return end

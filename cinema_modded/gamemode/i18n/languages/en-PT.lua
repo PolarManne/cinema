@@ -44,6 +44,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "Harbour (Queue)",
+	Queue_Priority = "Mark as Booty",
 	Request_Video = "Add Ship (Request Video)",
 	Vote_Skip = "Join Mutiny (Voteskip)",
 	Toggle_Fullscreen = "Toggle Fullscreen",

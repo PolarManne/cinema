@@ -43,6 +43,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "VIDEOJONO",
+	Queue_Priority = "Merkitse prioriteetiksi",
 	Request_Video = "Tee videopyyntö",
 	Vote_Skip = "Äänestä ohittamista",
 	Toggle_Fullscreen = "Vaihda kokoruututilaan",

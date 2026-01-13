@@ -43,6 +43,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = true,
+	Queue_Priority = true,
 	Request_Video = true,
 	Vote_Skip = true,
 	Toggle_Fullscreen = true,

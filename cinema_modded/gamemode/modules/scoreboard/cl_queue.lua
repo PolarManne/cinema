@@ -117,11 +117,23 @@ function QUEUE:SortList()
 
 	if theater.GetQueueMode() == QUEUE_CHRONOLOGICAL then
 		self.VideoList:SortVideos( function( a, b )
-			return a.Id < b.Id
+			-- Prioritize videos marked as priority, maintain request order
+			if a.Priority and not b.Priority then
+				return true
+			elseif b.Priority and not a.Priority then
+				return false
+			else
+				return a.Id < b.Id
+			end
 		end )
 	else
 		self.VideoList:SortVideos( function( a, b )
-			if a.Votes == b.Votes then
+			-- Priority videos always come first, then sort by votes
+			if a.Priority and not b.Priority then
+				return true
+			elseif b.Priority and not a.Priority then
+				return false
+			elseif a.Votes == b.Votes then
 				return a.Id < b.Id
 			else
 				return a.Votes > b.Votes
@@ -346,6 +358,29 @@ function VIDEOVOTE:AddRemoveButton()
 
 end
 
+function VIDEOVOTE:AddPriorityButton()
+
+	if IsValid(self.PriorityBtn) then return end
+
+	self.PriorityBtn = vgui.Create( "DImageButton", self )
+	self.PriorityBtn:SetSize( 16, 16 )
+	self.PriorityBtn:SetImage( "theater/star.png" )
+	self.PriorityBtn:SetTooltip( translations:Format("Queue_Priority") )
+	self.PriorityBtn.DoClick = function()
+		RunConsoleCommand( "cinema_video_priority", self.Video.Id )
+	end
+	self.PriorityBtn.Think = function()
+		if IsMouseOver( self.PriorityBtn ) or (self.Video and self.Video.Priority) then
+			self.PriorityBtn:SetAlpha( 255 )
+			self.PriorityBtn:SetColor( Color(255,255,0) )
+		else
+			self.PriorityBtn:SetAlpha( 25 )
+			self.PriorityBtn:SetColor( Color(255,255,255) )
+		end
+	end
+
+end
+
 function VIDEOVOTE:Vote( up )
 
 	if up then
@@ -383,7 +418,8 @@ function VIDEOVOTE:Update()
 	if self.Video.Owner or LocalPlayer():IsAdmin() or
 		(Theater and Theater:IsPrivate() and Theater:GetOwner() == LocalPlayer()) then
 		self:AddRemoveButton()
-		self:SetWide(54)
+		self:AddPriorityButton()
+		self:SetWide(54 + 16 + self.Padding)
 	else
 		self:SetWide(34)
 	end
@@ -405,7 +441,14 @@ function VIDEOVOTE:PerformLayout()
 	self.Votes:Center()
 	self.Votes:MoveRightOf( self.VoteUp, 5 )
 
-	if self.RemoveBtn then
+	if IsValid(self.PriorityBtn) then
+
+		self.PriorityBtn:Center()
+		self.PriorityBtn:MoveRightOf( self.Votes, 5 )
+
+	end
+
+	if IsValid(self.RemoveBtn) then
 
 		self.RemoveBtn:Center()
 		self.RemoveBtn:AlignRight()
@@ -451,6 +494,29 @@ function VIDEOCONTROLS:AddRemoveButton()
 
 end
 
+function VIDEOCONTROLS:AddPriorityButton()
+
+	if IsValid(self.PriorityBtn) then return end
+
+	self.PriorityBtn = vgui.Create( "DImageButton", self )
+	self.PriorityBtn:SetSize( 16, 16 )
+	self.PriorityBtn:SetImage( "theater/star.png" )
+	self.PriorityBtn:SetTooltip( translations:Format("Queue_Priority") )
+	self.PriorityBtn.DoClick = function()
+		RunConsoleCommand( "cinema_video_priority", self.Video.Id )
+	end
+	self.PriorityBtn.Think = function()
+		if IsMouseOver( self.PriorityBtn ) or (self.Video and self.Video.Priority) then
+			self.PriorityBtn:SetAlpha( 255 )
+			self.PriorityBtn:SetColor( Color(255,255,0) )
+		else
+			self.PriorityBtn:SetAlpha( 25 )
+			self.PriorityBtn:SetColor( Color(255,255,255) )
+		end
+	end
+
+end
+
 function VIDEOCONTROLS:Update()
 
 	if not self.Video then return end
@@ -459,7 +525,8 @@ function VIDEOCONTROLS:Update()
 	if self.Video.Owner or LocalPlayer():IsAdmin() or
 		(Theater and Theater:IsPrivate() and Theater:GetOwner() == LocalPlayer()) then
 		self:AddRemoveButton()
-		self:SetWide(16)
+		self:AddPriorityButton()
+		self:SetWide(16 + 16 + self.Padding)
 	else
 		self:SetWide(0)
 	end
@@ -474,6 +541,13 @@ function VIDEOCONTROLS:SetVideo( vid )
 end
 
 function VIDEOCONTROLS:PerformLayout()
+
+	if IsValid(self.PriorityBtn) then
+
+		self.PriorityBtn:Center()
+		self.PriorityBtn:AlignLeft()
+
+	end
 
 	if IsValid(self.RemoveBtn) then
 

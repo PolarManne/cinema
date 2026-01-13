@@ -43,6 +43,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "대기 열",
+	Queue_Priority = "우선순위로 표시",
 	Request_Video = "비디오 신청",
 	Vote_Skip = "투표 건너뛰기",
 	Toggle_Fullscreen = "항상 전체 화면",

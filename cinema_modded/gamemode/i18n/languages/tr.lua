@@ -43,6 +43,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "KUYRUK",
+	Queue_Priority = "Öncelik olarak İşaretle",
 	Request_Video = "Video Ac",
 	Vote_Skip = "Oylama Baslat",
 	Toggle_Fullscreen = "Tam ekran yap",

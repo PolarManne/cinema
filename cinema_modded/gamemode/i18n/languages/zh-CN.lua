@@ -45,6 +45,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "点播列表",
+	Queue_Priority = "标记为优先级",
 	Request_Video = "点播",
 	Vote_Skip = "投票跳过",
 	Toggle_Fullscreen = "切换全屏",

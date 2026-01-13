@@ -43,6 +43,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "Черга",
+	Queue_Priority = "Позначити як пріоритет",
 	Request_Video = "Встановити Відео",
 	Vote_Skip = "Голосувати За Пропуск",
 	Toggle_Fullscreen = "Повноекранний Режим",

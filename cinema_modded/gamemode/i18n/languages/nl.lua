@@ -43,6 +43,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "RIJ",
+	Queue_Priority = "Markeer als prioriteit",
 	Request_Video = "Verzoek Video",
 	Vote_Skip = "Wegstemmen",
 	Toggle_Fullscreen = "Schakel Vol Scherm In",

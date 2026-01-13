@@ -43,6 +43,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "キュー",
+	Queue_Priority = "優先度としてマークする",
 	Request_Video = "動画をリクエストする",
 	Vote_Skip = "スキップに投票する",
 	Toggle_Fullscreen = "フルスクリーンに変更する",

@@ -44,6 +44,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "WARTESCHLANGE",
+	Queue_Priority = "Als Priorität markieren",
 	Request_Video = "Video anfordern",
 	Vote_Skip = "Für Überspringen stimmen",
 	Toggle_Fullscreen = "Vollbildmodus umschalten",

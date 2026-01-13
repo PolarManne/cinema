@@ -42,8 +42,7 @@ return {
 	Warning_Unsupported_Line2 = "Premi F1 per aprire la mappa ufficiale nel Workshop Steam",
 
 	-- Queue interface
-	Queue_Title = "CODA",
-	Request_Video = "Richiedi Video",
+	Queue_Title = "CODA",	Queue_Priority = "Contrassegna come prioritario",	Request_Video = "Richiedi Video",
 	Vote_Skip = "Vota per saltare",
 	Toggle_Fullscreen = "Schermo intero",
 	Refresh_Theater = "Ricarica teatro",

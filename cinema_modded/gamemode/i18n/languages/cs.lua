@@ -44,6 +44,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "FRONTA",
+	Queue_Priority = "Označit jako prioritu",
 	Request_Video = "Vyžádat video",
 	Vote_Skip = "Hlasovat o přeskočení",
 	Toggle_Fullscreen = "Na celou obrazovku",

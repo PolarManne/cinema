@@ -35,6 +35,10 @@ function VIDEO:Init( info, ply )
 	o._VideoDuration = info.Duration or 0
 	o._VideoThumbnail = info.Thumbnail and isstring(info.Thumbnail) and info.Thumbnail or ""
 
+	if SERVER then
+		o._Priority = false -- prioritized videos go to top of queue
+	end
+
 	return o
 
 end
@@ -61,6 +65,18 @@ end
 
 function VIDEO:Thumbnail()
 	return self._VideoThumbnail
+end
+
+if SERVER then
+
+	function VIDEO:IsPriority()
+		return self._Priority or false
+	end
+
+	function VIDEO:SetPriority( priority )
+		self._Priority = tobool(priority)
+	end
+
 end
 
 /*

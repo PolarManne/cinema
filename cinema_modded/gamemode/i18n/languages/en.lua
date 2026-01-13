@@ -45,6 +45,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "QUEUE",
+	Queue_Priority = "Mark as priority",
 	Request_Video = "Request video",
 	Vote_Skip = "Vote to skip",
 	Toggle_Fullscreen = "Toggle fullscreen",

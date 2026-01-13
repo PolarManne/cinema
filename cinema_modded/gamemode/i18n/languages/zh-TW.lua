@@ -43,6 +43,7 @@ return {
 
 	-- Queue interface
 	Queue_Title = "佇列",
+	Queue_Priority = "標記為優先級",
 	Request_Video = "請求影片",
 	Vote_Skip = "投票跳過",
 	Toggle_Fullscreen = "切換全屏模式",

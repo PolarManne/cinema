@@ -44,8 +44,7 @@ return {
 	Dependency_Missing_Line2 = "Pressione F4 para abrir o vídeo com as instruções.",
 
 	-- Queue interface
-	Queue_Title = "FILA",
-	Request_Video = "Solicitar vídeo",
+	Queue_Title = "FILA",	Queue_Priority = "Marcar como prioritário",	Request_Video = "Solicitar vídeo",
 	Vote_Skip = "Votar para pular",
 	Toggle_Fullscreen = "Alternar tela cheia",
 	Refresh_Theater = "Atualizar teatro",
