@@ -311,6 +311,157 @@ else
 	end )
 
 	/*
+		Admin/server commands
+	*/
+	concommand.Add("cinema_now_playing", function(ply, cmd, args)
+
+		if IsValid(ply) and not ply:IsAdmin() then return end
+
+		local Theaters = theater.GetTheaters()
+		local foundAny = false
+
+		for locId, Theater in pairs(Theaters) do
+
+			if Theater:IsPlaying() then
+
+				foundAny = true
+				local elapsed = Theater:VideoCurrentTime(true)
+
+				Msg("Theater: " .. Theater:Name() .. "\n")
+				Msg("\tTitle:\t\t" .. tostring(Theater:VideoTitle()) .. "\n")
+				Msg("\tType:\t\t" .. tostring(Theater:VideoType()) .. "\n")
+				Msg("\tData:\t\t" .. tostring(Theater:VideoData()) .. "\n")
+				Msg("\tElapsed:\t" .. string.FormatSeconds(elapsed) .. "\n")
+				Msg("\tDuration:\t" .. string.FormatSeconds(Theater:VideoDuration()) .. "\n")
+				Msg(string.format("\tRequested by:\t%s (%s)\n", Theater:VideoOwnerName(), Theater:VideoOwnerSteamID()))
+				Msg("\n")
+
+			end
+
+		end
+
+		if not foundAny then
+			Msg("No videos currently playing.\n")
+		end
+
+	end)
+
+	concommand.Add("cinema_print_queue", function(ply, cmd, args)
+
+		if IsValid(ply) and not ply:IsAdmin() then return end
+
+		local Theaters = theater.GetTheaters()
+		local foundAny = false
+
+		for locId, Theater in pairs(Theaters) do
+
+			local queue = Theater:GetQueue()
+
+			if #queue > 0 then
+
+				foundAny = true
+				Msg("Theater: " .. Theater:Name() .. "\n")
+				Msg("Queue Mode: " .. (theater.GetQueueMode() == QUEUE_VOTEUPDOWN and "Voting" or "Chronological") .. "\n")
+
+				-- Sort queue based on how videos will actually be played
+				local sortedQueue = {}
+				for _, vid in ipairs(queue) do
+					table.insert(sortedQueue, vid)
+				end
+
+				if theater.GetQueueMode() == QUEUE_VOTEUPDOWN then
+					-- Sort by priority first, then votes, then request time
+					table.sort(sortedQueue, function(a, b)
+						if a:IsPriority() and not b:IsPriority() then
+							return true
+						elseif b:IsPriority() and not a:IsPriority() then
+							return false
+						elseif a:GetNumVotes() == b:GetNumVotes() then
+							return a:RequestTime() < b:RequestTime()
+						else
+							return a:GetNumVotes() > b:GetNumVotes()
+						end
+					end)
+				else
+					-- Chronological: priority first, then by request time
+					table.sort(sortedQueue, function(a, b)
+						if a:IsPriority() and not b:IsPriority() then
+							return true
+						elseif b:IsPriority() and not a:IsPriority() then
+							return false
+						else
+							return a.id < b.id
+						end
+					end)
+				end
+
+				for idx, vid in ipairs(sortedQueue) do
+					Msg("\tTitle:\t\t" .. tostring(vid:Title()) .. "\n")
+					Msg("\tType:\t\t" .. tostring(vid:Type()) .. "\n")
+					Msg("\tData:\t\t" .. tostring(vid:Data()) .. "\n")
+					Msg("\tDuration:\t" .. string.FormatSeconds(vid:Duration()) .. "\n")
+					Msg("\tVotes:\t\t" .. vid:GetNumVotes() .. "\n")
+					Msg("\tPriority:\t" .. (vid:IsPriority() and "Yes" or "No") .. "\n")
+					Msg(string.format("\tRequested by:\t%s (%s)\n", vid:GetOwnerName(), vid:GetOwnerSteamID()))
+					Msg("\n")
+				end
+
+			end
+
+		end
+
+		if not foundAny then
+			Msg("No queued videos in any theater.\n")
+		end
+
+	end)
+
+	concommand.Add("cinema_get_info", function(ply, cmd, args)
+
+		if IsValid(ply) and not ply:IsAdmin() then return end
+
+		local videoId = tonumber(args[1])
+		if not videoId then
+			Msg("Usage: cinema_get_info <video_id>\n")
+			return
+		end
+
+		local Theaters = theater.GetTheaters()
+		local found = false
+
+		for locId, Theater in pairs(Theaters) do
+
+			local queue = Theater:GetQueue()
+
+			for _, vid in ipairs(queue) do
+				if vid.id == videoId then
+					found = true
+
+					Msg("Video ID:\t" .. videoId .. "\n")
+					Msg("Theater:\t" .. Theater:Name() .. " (Location: " .. locId .. ")\n")
+					Msg("Title:\t\t" .. tostring(vid:Title()) .. "\n")
+					Msg("Type:\t\t" .. tostring(vid:Type()) .. "\n")
+					Msg("Data:\t\t" .. tostring(vid:Data()) .. "\n")
+					Msg("Duration:\t" .. string.FormatSeconds(vid:Duration()) .. "\n")
+					Msg("Votes:\t\t" .. vid:GetNumVotes() .. "\n")
+					Msg("Priority:\t" .. (vid:IsPriority() and "Yes" or "No") .. "\n")
+					Msg(string.format("Requested by:\t%s (%s)\n", vid:GetOwnerName(), vid:GetOwnerSteamID()))
+
+					break
+				end
+			end
+
+			if found then break end
+
+		end
+
+		if not found then
+			Msg("Video with ID " .. videoId .. " not found in any theater queue.\n")
+		end
+
+	end)
+
+	/*
 		Parse URLs in the chat for video requests
 	*/
 	hook.Add("PlayerSay", "TheaterAutoAdd", function(ply, chat)

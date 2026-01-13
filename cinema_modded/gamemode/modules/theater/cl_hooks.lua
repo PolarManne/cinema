@@ -27,8 +27,8 @@ function GM:PostVideoLoad( Video )
 		Msg("\tType:\t\t" .. tostring(Video:Type()) .. "\n")
 		Msg("\tData:\t\t" .. tostring(Video:Data()) .. "\n")
 		Msg("\tTime:\t\t" .. tostring(startTime) .. "\n")
-		Msg("\tDuration:\t" .. tostring(Video:Duration()) .. "\n")
-		Msg( string.format("\tRequested by %s (%s)", Video:GetOwnerName(),
+		Msg("\tDuration:\t" .. string.FormatSeconds(Video:Duration()) .. "\n")
+		Msg( string.format("\tRequested by:\t%s (%s)", Video:GetOwnerName(),
 			Video:GetOwnerSteamID() ) .. "\n" )
 	end
 

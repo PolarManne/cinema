@@ -221,7 +221,7 @@ function VIDEO:Update()
 
 	self.Title:SetText( self.Video.Title )
 	if LocalPlayer():IsAdmin() or (Theater and Theater:IsPrivate() and Theater:GetOwner() == LocalPlayer()) then
-		self:SetTooltip( self.Video.Title .. "\nRequested by: " .. (self.Video.OwnerName or "Unknown") )
+		self:SetTooltip( self.Video.Title .. "\nRequested by: " .. (self.Video.OwnerName or "Unknown") .. "\nID: " .. self.Video.Id)
 	else
 		self:SetTooltip( self.Video.Title )
 	end
