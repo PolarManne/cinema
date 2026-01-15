@@ -181,4 +181,4 @@ function DrawFullscreen()
 	end
 
 end
-hook.Add( "HUDPaint", "DrawFullscreenInfo", DrawFullscreen )
+hook.Add( "RenderScreenspaceEffects", "DrawFullscreenInfo", DrawFullscreen )
