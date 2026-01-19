@@ -341,7 +341,7 @@ else
 		end
 
 		if not foundAny then
-			Msg("No videos currently playing.\n")
+			Msg("No videos are currently playing.\n")
 		end
 
 	end)
