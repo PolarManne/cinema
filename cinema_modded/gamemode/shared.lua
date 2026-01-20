@@ -25,19 +25,7 @@ Loader.Load( "modules" )
 -- Load Map configuration file
 local function loadMap(legacy)
 	local strMap = (legacy and "cinema" or GM.FolderName ) .. "/gamemode/maps/" .. game.GetMap() .. ".lua"
-
-
-	if not legacy then
-		local strDT = GM.FolderName .. "/gamemode/maps_ducttape/" .. game.GetMap() .. ".lua"
-
-		-- "Duct Tape" for Maps
-		if file.Exists( strDT, "LUA" ) then
-			if SERVER then
-				AddCSLuaFile( strDT )
-			end
-			include( strDT )
-		end
-	end
+	local strDT = GM.FolderName .. "/gamemode/maps_ducttape/" .. game.GetMap() .. ".lua"
 
 	-- Maps Location
 	if file.Exists( strMap, "LUA" ) then
@@ -45,6 +33,14 @@ local function loadMap(legacy)
 			AddCSLuaFile( strMap )
 		end
 		include( strMap )
+	end
+
+	-- "Duct Tape" for Maps
+	if file.Exists( strDT, "LUA" ) then
+		if SERVER then
+			AddCSLuaFile( strDT )
+		end
+		include( strDT )
 	end
 end
 loadMap()
