@@ -415,16 +415,13 @@ function VIDEOVOTE:Update()
 	end
 
 	local Theater = LocalPlayer():GetTheater()
-	if LocalPlayer():IsAdmin() then
-		self:AddRemoveButton()
-		self:AddPriorityButton()
-		self:SetWide(16 + 16 + self.Padding)
-	elseif self.Video.Owner or
+	if self.Video.Owner or LocalPlayer():IsAdmin() or
 		(Theater and Theater:IsPrivate() and Theater:GetOwner() == LocalPlayer()) then
 		self:AddRemoveButton()
-		self:SetWide(16 + self.Padding)
+		self:AddPriorityButton()
+		self:SetWide(54 + 16 + self.Padding)
 	else
-		self:SetWide(0)
+		self:SetWide(34)
 	end
 
 end
