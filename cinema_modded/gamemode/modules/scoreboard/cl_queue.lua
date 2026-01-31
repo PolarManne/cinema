@@ -415,14 +415,27 @@ function VIDEOVOTE:Update()
 	end
 
 	local Theater = LocalPlayer():GetTheater()
-	if self.Video.Owner or LocalPlayer():IsAdmin() or
-		(Theater and Theater:IsPrivate() and Theater:GetOwner() == LocalPlayer()) then
+	local isAdmin = LocalPlayer():IsAdmin()
+	local isTheaterOwner = Theater and Theater:IsPrivate() and Theater:GetOwner() == LocalPlayer()
+	local canRemove = self.Video.Owner or isAdmin or isTheaterOwner
+	local canPrioritize = isAdmin or isTheaterOwner
+
+	if canRemove then
 		self:AddRemoveButton()
-		self:AddPriorityButton()
-		self:SetWide(54 + 16 + self.Padding)
-	else
-		self:SetWide(34)
 	end
+
+	if canPrioritize then
+		self:AddPriorityButton()
+	end
+
+	local buttonWidth = 34  -- base width for vote controls
+	if canRemove then
+		buttonWidth = buttonWidth + 16 + self.Padding
+	end
+	if canPrioritize then
+		buttonWidth = buttonWidth + 16 + self.Padding
+	end
+	self:SetWide(buttonWidth)
 
 end
 
@@ -521,15 +534,11 @@ function VIDEOCONTROLS:Update()
 
 	if not self.Video then return end
 
-	local Theater = LocalPlayer():GetTheater()
-	if LocalPlayer():IsAdmin() then
+	if self.Video.Owner or LocalPlayer():IsAdmin() or
+		(Theater and Theater:IsPrivate() and Theater:GetOwner() == LocalPlayer()) then
 		self:AddRemoveButton()
 		self:AddPriorityButton()
 		self:SetWide(16 + 16 + self.Padding)
-	elseif self.Video.Owner or
-		(Theater and Theater:IsPrivate() and Theater:GetOwner() == LocalPlayer()) then
-		self:AddRemoveButton()
-		self:SetWide(16 + self.Padding)
 	else
 		self:SetWide(0)
 	end

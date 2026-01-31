@@ -320,6 +320,14 @@ else
 		local Theaters = theater.GetTheaters()
 		local foundAny = false
 
+		local function Output(msg)
+			if IsValid(ply) then
+				ply:PrintMessage(HUD_PRINTCONSOLE, msg)
+			else
+				Msg(msg)
+			end
+		end
+
 		for locId, Theater in pairs(Theaters) do
 
 			if Theater:IsPlaying() then
@@ -327,21 +335,21 @@ else
 				foundAny = true
 				local elapsed = Theater:VideoCurrentTime(true)
 
-				Msg("Theater: " .. Theater:Name() .. "\n")
-				Msg("\tTitle:\t\t" .. tostring(Theater:VideoTitle()) .. "\n")
-				Msg("\tType:\t\t" .. tostring(Theater:VideoType()) .. "\n")
-				Msg("\tData:\t\t" .. tostring(Theater:VideoData()) .. "\n")
-				Msg("\tElapsed:\t" .. string.FormatSeconds(elapsed) .. "\n")
-				Msg("\tDuration:\t" .. string.FormatSeconds(Theater:VideoDuration()) .. "\n")
-				Msg(string.format("\tRequested by:\t%s (%s)\n", Theater:VideoOwnerName(), Theater:VideoOwnerSteamID()))
-				Msg("\n")
+				Output("Theater: " .. Theater:Name() .. "\n")
+				Output("\tTitle:\t\t" .. tostring(Theater:VideoTitle()) .. "\n")
+				Output("\tType:\t\t" .. tostring(Theater:VideoType()) .. "\n")
+				Output("\tData:\t\t" .. tostring(Theater:VideoData()) .. "\n")
+				Output("\tElapsed:\t" .. string.FormatSeconds(elapsed) .. "\n")
+				Output("\tDuration:\t" .. string.FormatSeconds(Theater:VideoDuration()) .. "\n")
+				Output(string.format("\tRequested by:\t%s (%s)\n", Theater:VideoOwnerName(), Theater:VideoOwnerSteamID()))
+				Output("\n")
 
 			end
 
 		end
 
 		if not foundAny then
-			Msg("No videos are currently playing.\n")
+			Output("No videos are currently playing.\n")
 		end
 
 	end)
@@ -353,6 +361,14 @@ else
 		local Theaters = theater.GetTheaters()
 		local foundAny = false
 
+		local function Output(msg)
+			if IsValid(ply) then
+				ply:PrintMessage(HUD_PRINTCONSOLE, msg)
+			else
+				Msg(msg)
+			end
+		end
+
 		for locId, Theater in pairs(Theaters) do
 
 			local queue = Theater:GetQueue()
@@ -360,8 +376,8 @@ else
 			if #queue > 0 then
 
 				foundAny = true
-				Msg("Theater: " .. Theater:Name() .. "\n")
-				Msg("Queue Mode: " .. (theater.GetQueueMode() == QUEUE_VOTEUPDOWN and "Voting" or "Chronological") .. "\n")
+				Output("Theater: " .. Theater:Name() .. "\n")
+				Output("Queue Mode: " .. (theater.GetQueueMode() == QUEUE_VOTEUPDOWN and "Voting" or "Chronological") .. "\n")
 
 				-- Sort queue based on how videos will actually be played
 				local sortedQueue = {}
@@ -396,14 +412,14 @@ else
 				end
 
 				for idx, vid in ipairs(sortedQueue) do
-					Msg("\tTitle:\t\t" .. tostring(vid:Title()) .. "\n")
-					Msg("\tType:\t\t" .. tostring(vid:Type()) .. "\n")
-					Msg("\tData:\t\t" .. tostring(vid:Data()) .. "\n")
-					Msg("\tDuration:\t" .. string.FormatSeconds(vid:Duration()) .. "\n")
-					Msg("\tVotes:\t\t" .. vid:GetNumVotes() .. "\n")
-					Msg("\tPriority:\t" .. (vid:IsPriority() and "Yes" or "No") .. "\n")
-					Msg(string.format("\tRequested by:\t%s (%s)\n", vid:GetOwnerName(), vid:GetOwnerSteamID()))
-					Msg("\n")
+					Output("\tTitle:\t\t" .. tostring(vid:Title()) .. "\n")
+					Output("\tType:\t\t" .. tostring(vid:Type()) .. "\n")
+					Output("\tData:\t\t" .. tostring(vid:Data()) .. "\n")
+					Output("\tDuration:\t" .. string.FormatSeconds(vid:Duration()) .. "\n")
+					Output("\tVotes:\t\t" .. vid:GetNumVotes() .. "\n")
+					Output("\tPriority:\t" .. (vid:IsPriority() and "Yes" or "No") .. "\n")
+					Output(string.format("\tRequested by:\t%s (%s)\n", vid:GetOwnerName(), vid:GetOwnerSteamID()))
+					Output("\n")
 				end
 
 			end
@@ -411,7 +427,7 @@ else
 		end
 
 		if not foundAny then
-			Msg("No queued videos in any theater.\n")
+			Output("No queued videos in any theater.\n")
 		end
 
 	end)
@@ -421,8 +437,17 @@ else
 		if IsValid(ply) and not ply:IsAdmin() then return end
 
 		local videoId = tonumber(args[1])
+
+		local function Output(msg)
+			if IsValid(ply) then
+				ply:PrintMessage(HUD_PRINTCONSOLE, msg)
+			else
+				Msg(msg)
+			end
+		end
+
 		if not videoId then
-			Msg("Usage: cinema_get_info <video_id>\n")
+			Output("Usage: cinema_get_info <video_id>\n")
 			return
 		end
 
@@ -437,15 +462,15 @@ else
 				if vid.id == videoId then
 					found = true
 
-					Msg("Video ID:\t" .. videoId .. "\n")
-					Msg("Theater:\t" .. Theater:Name() .. " (Location: " .. locId .. ")\n")
-					Msg("Title:\t\t" .. tostring(vid:Title()) .. "\n")
-					Msg("Type:\t\t" .. tostring(vid:Type()) .. "\n")
-					Msg("Data:\t\t" .. tostring(vid:Data()) .. "\n")
-					Msg("Duration:\t" .. string.FormatSeconds(vid:Duration()) .. "\n")
-					Msg("Votes:\t\t" .. vid:GetNumVotes() .. "\n")
-					Msg("Priority:\t" .. (vid:IsPriority() and "Yes" or "No") .. "\n")
-					Msg(string.format("Requested by:\t%s (%s)\n", vid:GetOwnerName(), vid:GetOwnerSteamID()))
+					Output("Video ID:\t" .. videoId .. "\n")
+					Output("Theater:\t" .. Theater:Name() .. " (Location: " .. locId .. ")\n")
+					Output("Title:\t\t" .. tostring(vid:Title()) .. "\n")
+					Output("Type:\t\t" .. tostring(vid:Type()) .. "\n")
+					Output("Data:\t\t" .. tostring(vid:Data()) .. "\n")
+					Output("Duration:\t" .. string.FormatSeconds(vid:Duration()) .. "\n")
+					Output("Votes:\t\t" .. vid:GetNumVotes() .. "\n")
+					Output("Priority:\t" .. (vid:IsPriority() and "Yes" or "No") .. "\n")
+					Output(string.format("Requested by:\t%s (%s)\n", vid:GetOwnerName(), vid:GetOwnerSteamID()))
 
 					break
 				end
@@ -456,7 +481,7 @@ else
 		end
 
 		if not found then
-			Msg("Video with ID " .. videoId .. " not found in any theater queue.\n")
+			Output("Video with ID " .. videoId .. " not found in any theater queue.\n")
 		end
 
 	end)
