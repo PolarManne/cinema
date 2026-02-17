@@ -21,16 +21,18 @@ if (CLIENT) then
 	end
 
 	function SERVICE:LoadProvider( Video, panel )
-		local url = playerURL("youtube.html") ..
-			("?v=%s"):format(Video:Data())
+		local baseUrl = playerURL("youtube.html")
+		local videoId = Video:Data()
+		local hash = ("v=%s"):format(videoId)
 
 		if self.IsTimed then
 			local startTime = math.max(0, math.Round(CurTime() - Video:StartTime()))
 			if startTime > 0 then
-				url = url .. ("&t=%d"):format(startTime)
+				hash = hash .. ("&t=%d"):format(startTime)
 			end
 		end
 
+		local url = baseUrl .. "#" .. hash
 		panel:OpenURL(url)
 
 		panel.OnDocumentReady = function(pnl)
@@ -42,16 +44,21 @@ if (CLIENT) then
 
 		local panel = self:CreateWebCrawler(callback)
 
-		panel:OpenURL(playerURL("youtube_meta.html") ..
-			("?v=%s"):format(data)
-		)
+		local baseUrl = playerURL("youtube_meta.html")
+		local hash = ("v=%s"):format(data)
+
+		local url = baseUrl .. "#" .. hash
+		panel:OpenURL(url)
 
 	end
 
 	function SERVICE:SearchFunctions( browser )
 		if not IsValid( browser ) then return end
 
-		browser:RunJavascript(BROWSER_JS)
+		-- Temporarily disables it, as it supposedly triggers the 
+		-- "Sign in to confirm you're not a bot" prompt.
+
+		-- browser:RunJavascript(BROWSER_JS)
 	end
 end
 
