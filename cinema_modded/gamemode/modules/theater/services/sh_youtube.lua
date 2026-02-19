@@ -17,22 +17,20 @@ if (CLIENT) then
 	]]
 
 	local function playerURL(path)
-		return ("https://madhammer.club/cinema/%s"):format(path)
+		return ("https://test.madhammer.club/cinema/%s"):format(path)
 	end
 
 	function SERVICE:LoadProvider( Video, panel )
-		local baseUrl = playerURL("youtube.html")
-		local videoId = Video:Data()
-		local hash = ("v=%s"):format(videoId)
+		local url = playerURL("youtube.html") ..
+			("?v=%s"):format(Video:Data())
 
 		if self.IsTimed then
 			local startTime = math.max(0, math.Round(CurTime() - Video:StartTime()))
 			if startTime > 0 then
-				hash = hash .. ("&t=%d"):format(startTime)
+				url = url .. ("&t=%d"):format(startTime)
 			end
 		end
 
-		local url = baseUrl .. "#" .. hash
 		panel:OpenURL(url)
 
 		panel.OnDocumentReady = function(pnl)
@@ -44,11 +42,9 @@ if (CLIENT) then
 
 		local panel = self:CreateWebCrawler(callback)
 
-		local baseUrl = playerURL("youtube_meta.html")
-		local hash = ("v=%s"):format(data)
-
-		local url = baseUrl .. "#" .. hash
-		panel:OpenURL(url)
+		panel:OpenURL(playerURL("youtube_meta.html") ..
+			("?v=%s"):format(data)
+		)
 
 	end
 
