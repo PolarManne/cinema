@@ -2,6 +2,29 @@ module( "theater", package.seeall )
 
 THEATER = {}
 
+local PRIORITY_POINTS_PER_SECOND = 250
+
+function IsPriorityPurchaseAvailable()
+	if not istable(Vanpoints) then
+		return false
+	end
+
+	if SERVER then
+		return isfunction(Vanpoints.Get) and isfunction(Vanpoints.Take)
+	end
+
+	return isfunction(Vanpoints.Get)
+end
+
+function GetPriorityPrice(duration)
+	local seconds = math.ceil(tonumber(duration) or 0)
+	if seconds <= 0 then
+		return 0
+	end
+
+	return seconds * PRIORITY_POINTS_PER_SECOND
+end
+
 function THEATER:Init( locId, info )
 
 	local o = {}
@@ -658,7 +681,7 @@ if SERVER then
 
 	end
 
-	function THEATER:ToggleVideoPriority( ply, id )
+	function THEATER:ToggleVideoPriority( ply, id, action )
 
 		id = tonumber(id)
 		if not IsValid(ply) or not id then return end
@@ -666,10 +689,51 @@ if SERVER then
 		for _, vid in pairs(self._Queue) do
 			if vid.id == id then
 
-				-- Toggle priority if player is theater owner or an admin
-				if (self:GetOwner() == ply) or ply:IsAdmin() then
+				local isPrivileged = (self:GetOwner() == ply) or ply:IsAdmin()
+
+				if isPrivileged then
 					vid:SetPriority(not vid:IsPriority())
+					break
 				end
+
+				-- Non-privileged users can only purchase priority for their own videos.
+				if vid:GetOwner() ~= ply then
+					break
+				end
+
+				-- Purchased priority cannot be used to remove priority status.
+				if vid:IsPriority() then
+					break
+				end
+
+				if action ~= "purchase" then
+					break
+				end
+
+				if not IsPriorityPurchaseAvailable() then
+					if SERVER then
+						ply:ChatPrint("Priority purchasing is currently disabled.")
+					end
+					break
+				end
+
+				local price = GetPriorityPrice(vid:Duration())
+				if price <= 0 then
+					if SERVER then
+						ply:ChatPrint("Priority cannot be purchased for live streams.")
+					end
+					break
+				end
+
+				local purchased, reason = hook.Run("TheaterPurchaseVideoPriority", ply, self, vid, price)
+				if purchased ~= true then
+					if SERVER then
+						ply:ChatPrint(isstring(reason) and reason or "Priority purchasing is currently unavailable.")
+					end
+					break
+				end
+
+				vid:SetPriority(true)
 
 				break
 

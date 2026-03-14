@@ -6,10 +6,67 @@ local QUEUE = {}
 QUEUE.TitleHeight = 64
 QUEUE.VidHeight = 32 -- 48
 
+local function IsPriorityPrivileged(ply, theaterRoom)
+	if not IsValid(ply) then return false end
+
+	return ply:IsAdmin() or
+		(theaterRoom and theaterRoom:IsPrivate() and theaterRoom:GetOwner() == ply)
+end
+
+local function GetPriorityPurchasePrice(video)
+	if not video or not video.Owner or video.Priority then
+		return 0
+	end
+
+	if not theater.IsPriorityPurchaseAvailable or not theater.IsPriorityPurchaseAvailable() then
+		return 0
+	end
+
+	if not theater.GetPriorityPrice then
+		return 0
+	end
+
+	return theater.GetPriorityPrice(video.Duration)
+end
+
+local function HasOwnedPriority(video)
+	return video and video.Owner and video.Priority
+end
+
+local function RequestPriority(video)
+	if not video then return end
+
+	local ply = LocalPlayer()
+	if not IsValid(ply) then return end
+
+	local theaterRoom = ply:GetTheater()
+	if IsPriorityPrivileged(ply, theaterRoom) then
+		RunConsoleCommand("cinema_video_priority", video.Id)
+		return
+	end
+
+	if not theater.IsPriorityPurchaseAvailable or not theater.IsPriorityPurchaseAvailable() then
+		return
+	end
+
+	local price = GetPriorityPurchasePrice(video)
+	if price <= 0 then return end
+
+	Derma_Query(
+		string.format("Mark this video as priority for %d₪?", price),
+		"Purchase Priority",
+		"Buy",
+		function()
+			RunConsoleCommand("cinema_video_priority", video.Id, "purchase")
+		end,
+		"Cancel"
+	)
+end
+
 function QUEUE:Init()
 
 	self:SetZPos( 1 )
-	self:SetSize( 256, 512 )
+	self:SetSize( 320, 512 )
 	self:SetPos( 8, ScrH() / 2 - ( self:GetTall() / 2 ) )
 
 	self.Title = Label( translations:Format("Queue_Title"), self )
@@ -367,7 +424,7 @@ function VIDEOVOTE:AddPriorityButton()
 	self.PriorityBtn:SetImage( "theater/star.png" )
 	self.PriorityBtn:SetTooltip( translations:Format("Queue_Priority") )
 	self.PriorityBtn.DoClick = function()
-		RunConsoleCommand( "cinema_video_priority", self.Video.Id )
+		RequestPriority(self.Video)
 	end
 	self.PriorityBtn.Think = function()
 		if IsMouseOver( self.PriorityBtn ) or (self.Video and self.Video.Priority) then
@@ -416,16 +473,22 @@ function VIDEOVOTE:Update()
 
 	local Theater = LocalPlayer():GetTheater()
 	local isAdmin = LocalPlayer():IsAdmin()
-	local isTheaterOwner = Theater and Theater:IsPrivate() and Theater:GetOwner() == LocalPlayer()
+	local isTheaterOwner = IsPriorityPrivileged(LocalPlayer(), Theater)
 	local canRemove = self.Video.Owner or isAdmin or isTheaterOwner
-	local canPrioritize = isAdmin or isTheaterOwner
+	local canPrioritize = isTheaterOwner or GetPriorityPurchasePrice(self.Video) > 0 or HasOwnedPriority(self.Video)
 
 	if canRemove then
 		self:AddRemoveButton()
+	elseif IsValid(self.RemoveBtn) then
+		self.RemoveBtn:Remove()
+		self.RemoveBtn = nil
 	end
 
 	if canPrioritize then
 		self:AddPriorityButton()
+	elseif IsValid(self.PriorityBtn) then
+		self.PriorityBtn:Remove()
+		self.PriorityBtn = nil
 	end
 
 	local buttonWidth = 34  -- base width for vote controls
@@ -516,7 +579,7 @@ function VIDEOCONTROLS:AddPriorityButton()
 	self.PriorityBtn:SetImage( "theater/star.png" )
 	self.PriorityBtn:SetTooltip( translations:Format("Queue_Priority") )
 	self.PriorityBtn.DoClick = function()
-		RunConsoleCommand( "cinema_video_priority", self.Video.Id )
+		RequestPriority(self.Video)
 	end
 	self.PriorityBtn.Think = function()
 		if IsMouseOver( self.PriorityBtn ) or (self.Video and self.Video.Priority) then
@@ -534,12 +597,46 @@ function VIDEOCONTROLS:Update()
 
 	if not self.Video then return end
 
-	if self.Video.Owner or LocalPlayer():IsAdmin() or
-		(Theater and Theater:IsPrivate() and Theater:GetOwner() == LocalPlayer()) then
-		self:AddRemoveButton()
-		self:AddPriorityButton()
-		self:SetWide(16 + 16 + self.Padding)
+	local ply = LocalPlayer()
+	local theaterRoom = ply:GetTheater()
+	local hasRemoveAccess = self.Video.Owner or IsPriorityPrivileged(ply, theaterRoom)
+	local canPrioritize = IsPriorityPrivileged(ply, theaterRoom) or GetPriorityPurchasePrice(self.Video) > 0 or HasOwnedPriority(self.Video)
+
+	if hasRemoveAccess or canPrioritize then
+		if hasRemoveAccess then
+			self:AddRemoveButton()
+		elseif IsValid(self.RemoveBtn) then
+			self.RemoveBtn:Remove()
+			self.RemoveBtn = nil
+		end
+		if canPrioritize then
+			self:AddPriorityButton()
+		elseif IsValid(self.PriorityBtn) then
+			self.PriorityBtn:Remove()
+			self.PriorityBtn = nil
+		end
+
+		local width = 0
+		if hasRemoveAccess then
+			width = width + 16
+		end
+		if canPrioritize then
+			if width > 0 then
+				width = width + self.Padding
+			end
+			width = width + 16
+		end
+
+		self:SetWide(width)
 	else
+		if IsValid(self.RemoveBtn) then
+			self.RemoveBtn:Remove()
+			self.RemoveBtn = nil
+		end
+		if IsValid(self.PriorityBtn) then
+			self.PriorityBtn:Remove()
+			self.PriorityBtn = nil
+		end
 		self:SetWide(0)
 	end
 

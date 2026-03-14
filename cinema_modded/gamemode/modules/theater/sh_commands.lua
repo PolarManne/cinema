@@ -288,12 +288,12 @@ else
 
 	end )
 
-	TheaterPrivilegedCommand( "cinema_video_priority", function( Theater, ply, cmd, args )
+	TheaterCommand( "cinema_video_priority", function( Theater, ply, cmd, args )
 
 		local id = tonumber(args[1])
 		if not id then return end
 
-		Theater:ToggleVideoPriority(ply, id)
+		Theater:ToggleVideoPriority(ply, id, args[2])
 
 	end )
 
