@@ -426,10 +426,10 @@ function SpawnPokerTables()
 			table:SetAngles(config.ang)
 			table:SetGameState(-1)
 			table:SetGameType(1)
-			table:SetBetType(0)
+			table:SetBetType(2)
 			table:SetMaxPlayers(8)
 			table:SetEntryBet(100)
-			table:SetStartValue(1000)
+			--table:SetStartValue()
 			table:GetPhysicsObject():EnableMotion(false)
 		end
 	end
