@@ -74,7 +74,7 @@ function SpawnPokerTables()
                         table:SetGameType(1)
                         table:SetBetType(2)
                         table:SetMaxPlayers(8)
-                        table:SetEntryBet(100)
+                        table:SetEntryBet(1000)
                         --table:SetStartValue()
                         table:GetPhysicsObject():EnableMotion(false)
                 end
