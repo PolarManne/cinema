@@ -237,9 +237,9 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 			url = playbackInfoURL,
 			method = "POST",
 			headers = {
-				["Content-Type"] = "application/json",
 				["Authorization"] = BuildAuthHeader(apiKey)
 			},
+			type = "application/json",
 			body = requestBody,
 			success = function(code, body)
 				code = tonumber(code) or 0
