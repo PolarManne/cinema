@@ -109,182 +109,255 @@ end
 if CLIENT then
 
 	local THEATER_JS = [[
-		var checkerInterval = setInterval(function() {
-			var player = document.getElementsByTagName("VIDEO")[0]
-			if (!!player) {
-				if (player.paused) {player.play();}
-				if (player.paused === false && player.readyState === 4) {
+		(function() {
+
+			// Recursively search for a <video> element, including inside Shadow DOM
+			function findVideo(root) {
+				if (!root) return null;
+
+				// Direct video element
+				let vid = root.querySelector && root.querySelector("video");
+				if (vid) return vid;
+
+				// Handle archive.org <play-av> shadow DOM
+				let playAv = root.querySelector && root.querySelector("play-av");
+				if (playAv && playAv.shadowRoot) {
+					let v = findVideo(playAv.shadowRoot);
+					if (v) return v;
+				}
+
+				// Traverse all elements and check for nested shadow roots
+				let all = root.querySelectorAll ? root.querySelectorAll("*") : [];
+				for (let el of all) {
+					if (el.shadowRoot) {
+						let v = findVideo(el.shadowRoot);
+						if (v) return v;
+					}
+				}
+
+				return null;
+			}
+
+			// Poll until video element is available and ready
+			var checkerInterval = setInterval(function() {
+				var player = findVideo(document);
+
+				if (player && player.readyState >= 2) {
 					clearInterval(checkerInterval);
 
+					// Expose player globally for Lua controls
 					window.cinema_controller = player;
-					player.style = "width:100%; height: 100%;";
+
+					// Force fullscreen-like layout
+					player.style.width = "100%";
+					player.style.height = "100%";
+					document.body.style.backgroundColor = "black";
 
 					exTheater.controllerReady();
 				}
-			}
-		}, 50);
+			}, 100);
+
+		})();
 	]]
 
 	-- It's overkill, but hey, why not? ¯\_(ツ)_/¯
 	local REQUEST_JS = [[
-		(function watchForJWPlayer() {
-			let lastState = null;
-			let lastVideoSrc = null;
-			let playerDetected = false;
-			let isVideoPlaying = false;
+	(function watchForJWPlayer() {
 
-			const updateState = (hasVideo, metadata = null) => {
-				const currentVideoSrc = metadata ? metadata.source : null;
-				const stateChanged = (lastState !== hasVideo) || (lastVideoSrc !== currentVideoSrc);
+		let lastState = null;
+		let lastVideoSrc = null;
+		let playerDetected = false;
+		let isVideoPlaying = false;
 
-				if (stateChanged) {
-					lastState = hasVideo;
-					lastVideoSrc = currentVideoSrc;
-					playerDetected = hasVideo;
+		// --- Deep Shadow DOM video search (supports play-av and nested players)
+		function findVideoDeep(root) {
+			if (!root) return null;
 
-					if (typeof gmod !== 'undefined' && gmod.updateRequestButton) {
-						gmod.updateRequestButton(!!hasVideo);
-					}
+			let vid = root.querySelector && root.querySelector("video");
+			if (vid && (vid.currentSrc || vid.readyState > 0)) return vid;
 
-					if (hasVideo && metadata) {
-						console.log("[IA-DETECT] Video detected:", JSON.stringify(metadata, null, 2));
-					} else if (!hasVideo && lastVideoSrc !== null) {
-						console.log("[IA-DETECT] Video lost");
-					}
+			let all = root.querySelectorAll ? root.querySelectorAll("*") : [];
+			for (let el of all) {
+				if (el.shadowRoot) {
+					let v = findVideoDeep(el.shadowRoot);
+					if (v) return v;
 				}
-			};
+			}
+			return null;
+		}
 
-			const checkVideoSources = () => {
-				// Method 1: JWPlayer API check - always active
-				if (typeof window.jwplayer === 'function') {
-					try {
-						const player = window.jwplayer();
-						if (player && player.getPlaylist) {
-							const playlist = player.getPlaylist();
-							if (playlist && playlist.length > 0) {
-								const currentIndex = player.getPlaylistItem() || 0;
-								const currentItem = playlist[currentIndex];
-								if (currentItem && currentItem.file) {
-									const metadata = {
+		// --- Update UI state
+		const updateState = (hasVideo, metadata = null) => {
+			const currentVideoSrc = metadata ? metadata.source : null;
+			const stateChanged = (lastState !== hasVideo) || (lastVideoSrc !== currentVideoSrc);
+
+			if (stateChanged) {
+				lastState = hasVideo;
+				lastVideoSrc = currentVideoSrc;
+				playerDetected = hasVideo;
+
+				if (typeof gmod !== 'undefined' && gmod.updateRequestButton) {
+					gmod.updateRequestButton(!!hasVideo);
+				}
+
+				if (hasVideo && metadata) {
+					console.log("[IA-DETECT] Video detected:", JSON.stringify(metadata, null, 2));
+				} else if (!hasVideo && lastVideoSrc !== null) {
+					console.log("[IA-DETECT] Video lost");
+				}
+			}
+		};
+
+		// --- Core detection logic
+		const checkVideoSources = () => {
+
+			// Method 0: Deep Shadow DOM scan (NEW - covers play-av)
+			const deepVideo = findVideoDeep(document);
+			if (deepVideo) {
+				return {
+					found: true,
+					metadata: {
+						detected: true,
+						source: deepVideo.currentSrc,
+						method: 'deep-shadow-scan',
+						readyState: deepVideo.readyState
+					}
+				};
+			}
+
+			// Method 1: JWPlayer API
+			if (typeof window.jwplayer === 'function') {
+				try {
+					const player = window.jwplayer();
+					if (player && player.getPlaylist) {
+						const playlist = player.getPlaylist();
+						if (playlist && playlist.length > 0) {
+							const currentIndex = player.getPlaylistItem() || 0;
+							const currentItem = playlist[currentIndex];
+							if (currentItem && currentItem.file) {
+								return {
+									found: true,
+									metadata: {
 										detected: true,
 										source: currentItem.file,
 										method: 'jwplayer-api',
 										playlistIndex: currentIndex,
 										playlistLength: playlist.length,
 										title: currentItem.title || 'unknown'
-									};
-									return { found: true, metadata };
-								}
+									}
+								};
 							}
 						}
-					} catch (e) {
-						// Silent fail
 					}
+				} catch (e) {
+					// silent fail
 				}
+			}
 
-				// Method 2: Universal video element detection
-				const universalSelectors = [
-					'video',
-					'video[src]',
-					'.jwplayer video',
-					'video.jw-video',
-					'.jw-media video',
-					'[data-jwplayer-id] video'
-				];
+			// Method 2: Standard DOM selectors
+			const selectors = [
+				'video',
+				'video[src]',
+				'.jwplayer video',
+				'video.jw-video',
+				'.jw-media video',
+				'[data-jwplayer-id] video'
+			];
 
-				for (const selector of universalSelectors) {
-					const videos = document.querySelectorAll(selector);
-					for (const video of videos) {
-						if (video.currentSrc || (playerDetected && video.readyState > 0)) {
-							const metadata = {
+			for (const selector of selectors) {
+				const videos = document.querySelectorAll(selector);
+				for (const video of videos) {
+					if (video.currentSrc || (playerDetected && video.readyState > 0)) {
+						return {
+							found: true,
+							metadata: {
 								detected: true,
 								source: video.currentSrc || 'jwplayer-active',
 								method: 'dom-selector',
 								selector: selector,
 								readyState: video.readyState
-							};
-							return { found: true, metadata };
-						}
+							}
+						};
 					}
-				}
-
-				// Only mark as not found if we never detected a player
-				return { found: playerDetected, metadata: null };
-			};
-
-			// Initial check
-			const initialResult = checkVideoSources();
-			updateState(initialResult.found, initialResult.metadata);
-
-			// Hook into JWPlayer events
-			if (typeof window.jwplayer === 'function') {
-				try {
-					const player = window.jwplayer();
-
-					player.on('ready', () => {
-						const result = checkVideoSources();
-						updateState(result.found, result.metadata);
-					});
-
-					player.on('playlistItem', () => {
-						setTimeout(() => {
-							const result = checkVideoSources();
-							updateState(result.found, result.metadata);
-						}, 300);
-					});
-
-					// Track playback state
-					player.on('play', () => {
-						console.log("[IA-DETECT] Video playing - enabling continuous trigger");
-						isVideoPlaying = true;
-					});
-
-					player.on('pause', () => {
-						console.log("[IA-DETECT] Video paused");
-						isVideoPlaying = false;
-						const result = checkVideoSources();
-						updateState(result.found, result.metadata);
-					});
-
-					player.on('complete', () => {
-						console.log("[IA-DETECT] Video completed");
-						isVideoPlaying = false;
-						const result = checkVideoSources();
-						updateState(result.found, result.metadata);
-					});
-				} catch (e) {
-					// Silent fail
 				}
 			}
 
-			// CRITICAL: Continuous monitoring with playback trigger
-			const monitorInterval = setInterval(() => {
-				const result = checkVideoSources();
+			// fallback: keep previous state if player was already detected
+			return { found: playerDetected, metadata: null };
+		};
 
-				// KEY CHANGE: If video is playing, always keep button enabled
-				if (isVideoPlaying && typeof gmod !== 'undefined' && gmod.updateRequestButton) {
-					gmod.updateRequestButton(true);
-					console.log("[IA-DETECT] Playback trigger - keeping button enabled");
-				} else {
+		// --- Initial detection
+		const initialResult = checkVideoSources();
+		updateState(initialResult.found, initialResult.metadata);
+
+		// --- JWPlayer event hooks (if present)
+		if (typeof window.jwplayer === 'function') {
+			try {
+				const player = window.jwplayer();
+
+				player.on('ready', () => {
+					const result = checkVideoSources();
 					updateState(result.found, result.metadata);
-				}
-			}, 1000);
+				});
 
-			// DOM observer
-			const observer = new MutationObserver(() => {
-				const result = checkVideoSources();
+				player.on('playlistItem', () => {
+					setTimeout(() => {
+						const result = checkVideoSources();
+						updateState(result.found, result.metadata);
+					}, 300);
+				});
+
+				player.on('play', () => {
+					console.log("[IA-DETECT] Video playing");
+					isVideoPlaying = true;
+				});
+
+				player.on('pause', () => {
+					console.log("[IA-DETECT] Video paused");
+					isVideoPlaying = false;
+					const result = checkVideoSources();
+					updateState(result.found, result.metadata);
+				});
+
+				player.on('complete', () => {
+					console.log("[IA-DETECT] Video completed");
+					isVideoPlaying = false;
+					const result = checkVideoSources();
+					updateState(result.found, result.metadata);
+				});
+			} catch (e) {
+				// silent fail
+			}
+		}
+
+		// --- Continuous monitoring
+		const monitorInterval = setInterval(() => {
+			const result = checkVideoSources();
+
+			// keep button enabled while actively playing
+			if (isVideoPlaying && typeof gmod !== 'undefined' && gmod.updateRequestButton) {
+				gmod.updateRequestButton(true);
+			} else {
 				updateState(result.found, result.metadata);
-			});
+			}
+		}, 1000);
 
-			observer.observe(document.body, {
-				childList: true,
-				subtree: true,
-				attributes: true,
-				attributeFilter: ['src', 'currentSrc']
-			});
+		// --- DOM observer for dynamic changes
+		const observer = new MutationObserver(() => {
+			const result = checkVideoSources();
+			updateState(result.found, result.metadata);
+		});
 
-			console.log("[IA-DETECT] Continuous detection with playback trigger initialized");
-		})();
+		observer.observe(document.body, {
+			childList: true,
+			subtree: true,
+			attributes: true,
+			attributeFilter: ['src', 'currentSrc']
+		});
+
+		console.log("[IA-DETECT] Shadow DOM + JWPlayer detection initialized");
+
+	})();
 	]]
 
 	function SERVICE:LoadProvider(Video, panel)
