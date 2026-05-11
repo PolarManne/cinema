@@ -335,15 +335,15 @@ Location.Add( "sleepykiba_xmas_2021_v3",
 	},
 	[ "Star Wars Theater" ] =
 	{
-		Min = Vector( -7258, 803, 1622 ),
-		Max = Vector( -5402, 2896, 2599 ),
+		Min = Vector( -7853, 803, 1622 ),
+		Max = Vector( -5402, 2896, 3137 ),
 		Theater = {
 			Name = "Star Wars Theater",
 			Flags = THEATER_NONE,
-			Pos = Vector( -6284, 1165, 1905 ),
+			Pos = Vector( -6217, 1110, 2244 ),
 			Ang = Angle(0, 180, 0),
-			Width = 372,
-			Height = 201,
+			Width = 883,
+			Height = 503,
 		}
 	},
 	[ "Cave Theater" ] =
