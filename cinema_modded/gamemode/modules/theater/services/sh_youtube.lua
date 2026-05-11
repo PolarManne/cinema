@@ -20,6 +20,7 @@ if (CLIENT) then
 		local baseUrl = theater.GetCinemaURL("youtube.html")
 		local videoId = Video:Data()
 		local hash = ("v=%s"):format(videoId)
+		local url = baseUrl .. "#" .. hash
 
 		if self.IsTimed then
 			local startTime = math.max(0, math.Round(CurTime() - Video:StartTime()))
