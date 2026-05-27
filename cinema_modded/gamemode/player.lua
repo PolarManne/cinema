@@ -207,12 +207,14 @@ function GM:PlayerCanSeePlayersChat( strText, bTeamOnly, pListener, pSpeaker )
 		return true
 	end
 
-	-- Team chat will only boardcast to players in the same location
+	-- Local chat functions as global chat in Cinema
 	if bTeamOnly then
-		return pSpeaker:GetLocation() == pListener:GetLocation()
+		return true
 	end
 
-	return true
+	-- Players should only receive chat messages from users in the same
+	-- theater if it wasn't global.
+	return pSpeaker:GetTheater() == pListener:GetTheater()
 
 end
 
