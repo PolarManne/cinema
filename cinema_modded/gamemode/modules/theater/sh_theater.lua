@@ -2,7 +2,7 @@ module( "theater", package.seeall )
 
 THEATER = {}
 
-local PRIORITY_POINTS_PER_SECOND = 250
+local PRIORITY_POINTS_PER_SECOND = 2500
 
 function IsPriorityPurchaseAvailable()
 	if not istable(Vanpoints) then
