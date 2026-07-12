@@ -5,8 +5,10 @@
 	"ignore"	:   [
 		".git/*",
 		".github/*",
+		".vscode/*",
 		"public/*",
 		"cinema_modded/*",
+		".gluarc.json",
 		"*.bat",
 		"*.vmf",
 		"*.md",

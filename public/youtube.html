@@ -9,11 +9,14 @@
 
 	<link rel="dns-prefetch" href="//www.youtube.com">
 	<link rel="dns-prefetch" href="//www.youtube-nocookie.com">
+	<link rel="dns-prefetch" href="//i.ytimg.com">
 	<link rel="preconnect" href="https://www.youtube.com" crossorigin>
 	<link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
+	<link rel="preload" href="https://www.youtube.com/iframe_api" as="script">
 
 	<style>
-		html, body {
+		html,
+		body {
 			margin: 0;
 			padding: 0;
 			width: 100%;
@@ -55,7 +58,7 @@
 
 		const tag = document.createElement('script');
 		tag.src = "https://www.youtube.com/iframe_api";
-		tag.onerror = function() {
+		tag.onerror = function () {
 			console.log("ERROR:Failed to load YouTube IFrame API");
 		};
 		document.head.appendChild(tag);
@@ -74,9 +77,19 @@
 			autoplay: 1		   // Set to make it autostart
 		};
 
+		const startPaused = getParameter('paused') === '1';
+
 		function onYouTubeIframeAPIReady() {
-			const vid = getParameter('v') || 'dQw4w9WgXcQ';
-			const startTime = parseFloat(getParameter('t')) || 0;
+			const rawVid = getParameter('v');
+			const vid = (rawVid && /^[a-zA-Z0-9_-]{11}$/.test(rawVid))
+				? rawVid
+				: 'dQw4w9WgXcQ';
+
+			const startTime = Math.max(0, parseFloat(getParameter('t')) || 0);
+
+			if (startPaused) {
+				defaultPlayerVars.autoplay = 0; // don't autostart when paused
+			}
 
 			createPlayer(vid, startTime);
 		}
@@ -109,20 +122,38 @@
 							player.seekTo(startTime, true);
 						}
 
+						// Honor a paused start (URL param or an early pause() call)
+						if (startPaused || wrapper._desiredPaused) {
+							player.pauseVideo();
+						}
+
 						window.cinema_controller = wrapper;
 						exTheater.controllerReady();
 					},
-					onStateChange: (e) => wrapper._paused = e.data !== YT.PlayerState.PLAYING
+					onStateChange: (e) => {
+						wrapper._paused = e.data !== YT.PlayerState.PLAYING;
+
+						// YouTube re-loads the captions module when playback
+						// actually begins, so unload it again on PLAYING/BUFFERING
+						// to keep subtitles off.
+						if (e.data === YT.PlayerState.PLAYING ||
+							e.data === YT.PlayerState.BUFFERING) {
+							player.unloadModule('captions');
+						}
+					},
 				}
 			});
 
 			const wrapper = {
 				_ready: false,
 				_paused: true,
+				_desiredPaused: false,
 				play() {
+					this._desiredPaused = false;
 					if (this._ready) player.playVideo();
 				},
 				pause() {
+					this._desiredPaused = true;
 					if (this._ready) player.pauseVideo();
 				},
 
