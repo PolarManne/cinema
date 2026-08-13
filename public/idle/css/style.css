@@ -61,11 +61,7 @@ body {
 }
 
 .top-curtain {
-<<<<<<<< HEAD:public/style.css
-	background-image: url(images/curtaintop.png);
-========
 	background-image: url(../images/curtaintop-min.avif);
->>>>>>>> upstream/HEAD:public/idle/css/style.css
 	background-repeat: no-repeat;
 	background-size: 100% 100%;
 	background-position: top;
@@ -76,11 +72,7 @@ body {
 }
 
 .left-curtain {
-<<<<<<<< HEAD:public/style.css
-	background-image: url(images/curtainleft.png);
-========
 	background-image: url(../images/curtainleft-min.avif);
->>>>>>>> upstream/HEAD:public/idle/css/style.css
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-position: right;
@@ -92,11 +84,7 @@ body {
 }
 
 .right-curtain {
-<<<<<<<< HEAD:public/style.css
-	background-image: url(images/curtainright.png);
-========
 	background-image: url(../images/curtainright-min.avif);
->>>>>>>> upstream/HEAD:public/idle/css/style.css
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-position: left;
