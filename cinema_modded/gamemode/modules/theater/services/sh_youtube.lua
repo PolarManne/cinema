@@ -11,10 +11,6 @@ function SERVICE:Match( url )
 end
 
 if (CLIENT) then
-	local BROWSER_JS = [[
-		// YouTube Adblock (https://github.com/Vendicated/Vencord/blob/main/src/plugins/youtubeAdblock.desktop/adguard.js - #d199603)
-		const hiddenCSS=["#__ffYoutube1","#__ffYoutube2","#__ffYoutube3","#__ffYoutube4","#feed-pyv-container","#feedmodule-PRO","#homepage-chrome-side-promo","#merch-shelf","#offer-module",'#pla-shelf > ytd-pla-shelf-renderer[class="style-scope ytd-watch"]',"#pla-shelf","#premium-yva","#promo-info","#promo-list","#promotion-shelf","#related > ytd-watch-next-secondary-results-renderer > #items > ytd-compact-promoted-video-renderer.ytd-watch-next-secondary-results-renderer","#search-pva","#shelf-pyv-container","#video-masthead","#watch-branded-actions","#watch-buy-urls","#watch-channel-brand-div","#watch7-branded-banner","#YtKevlarVisibilityIdentifier","#YtSparklesVisibilityIdentifier",".carousel-offer-url-container",".companion-ad-container",".GoogleActiveViewElement",'.list-view[style="margin: 7px 0pt;"]',".promoted-sparkles-text-search-root-container",".promoted-videos",".searchView.list-view",".sparkles-light-cta",".watch-extra-info-column",".watch-extra-info-right",".ytd-carousel-ad-renderer",".ytd-compact-promoted-video-renderer",".ytd-companion-slot-renderer",".ytd-merch-shelf-renderer",".ytd-player-legacy-desktop-watch-ads-renderer",".ytd-promoted-sparkles-text-search-renderer",".ytd-promoted-video-renderer",".ytd-search-pyv-renderer",".ytd-video-masthead-ad-v3-renderer",".ytp-ad-action-interstitial-background-container",".ytp-ad-action-interstitial-slot",".ytp-ad-image-overlay",".ytp-ad-overlay-container",".ytp-ad-progress",".ytp-ad-progress-list",'[class*="ytd-display-ad-"]','[layout*="display-ad-"]','a[href^="http://www.youtube.com/cthru?"]','a[href^="https://www.youtube.com/cthru?"]',"ytd-action-companion-ad-renderer","ytd-banner-promo-renderer","ytd-compact-promoted-video-renderer","ytd-companion-slot-renderer","ytd-display-ad-renderer","ytd-promoted-sparkles-text-search-renderer","ytd-promoted-sparkles-web-renderer","ytd-search-pyv-renderer","ytd-single-option-survey-renderer","ytd-video-masthead-ad-advertiser-info-renderer","ytd-video-masthead-ad-v3-renderer","YTM-PROMOTED-VIDEO-RENDERER"],hideElements=()=>{if(!hiddenCSS)return;const e=hiddenCSS.join(", ")+" { display: none!important; }",r=document.createElement("style");r.textContent=e,document.head.appendChild(r)},observeDomChanges=e=>{new MutationObserver((r=>{e(r)})).observe(document.documentElement,{childList:!0,subtree:!0})},hideDynamicAds=()=>{const e=document.querySelectorAll("#contents > ytd-rich-item-renderer ytd-display-ad-renderer");0!==e.length&&e.forEach((e=>{if(e.parentNode&&e.parentNode.parentNode){const r=e.parentNode.parentNode;"ytd-rich-item-renderer"===r.localName&&(r.style.display="none")}}))},autoSkipAds=()=>{if(document.querySelector(".ad-showing")){const e=document.querySelector("video");e&&e.duration&&(e.currentTime=e.duration,setTimeout((()=>{const e=document.querySelector("button.ytp-ad-skip-button");e&&e.click()}),100))}},overrideObject=(e,r,t)=>{if(!e)return!1;let o=!1;for(const d in e)e.hasOwnProperty(d)&&d===r?(e[d]=t,o=!0):e.hasOwnProperty(d)&&"object"==typeof e[d]&&overrideObject(e[d],r,t)&&(o=!0);return o},jsonOverride=(e,r)=>{const t=JSON.parse;JSON.parse=(...o)=>{const d=t.apply(this,o);return overrideObject(d,e,r),d},Response.prototype.json=new Proxy(Response.prototype.json,{async apply(...t){const o=await Reflect.apply(...t);return overrideObject(o,e,r),o}})};jsonOverride("adPlacements",[]),jsonOverride("playerAds",[]),hideElements(),hideDynamicAds(),autoSkipAds(),observeDomChanges((()=>{hideDynamicAds(),autoSkipAds()}));
-	]]
 
 	function SERVICE:LoadProvider( Video, panel )
 		local baseUrl = theater.GetCinemaURL("youtube.html")
@@ -23,12 +19,25 @@ if (CLIENT) then
 		local url = baseUrl .. "#" .. hash
 
 		if self.IsTimed then
-			local startTime = math.max(0, math.Round(CurTime() - Video:StartTime()))
+			local startTime
+			if Video._Paused and Video._PausedOffset then
+				-- Frozen pause position, not the advancing clock
+				startTime = math.max(0, math.Round(Video._PausedOffset))
+			else
+				startTime = math.max(0, math.Round(CurTime() - Video:StartTime()))
+			end
+
 			if startTime > 0 then
 				url = url .. ("&t=%d"):format(startTime)
 			end
 		end
 
+		-- Start the player paused (disables autoplay in youtube.html)
+		if Video._Paused then
+			hash = hash .. "&paused=1"
+		end
+
+		local url = baseUrl .. "#" .. hash
 		panel:OpenURL(url)
 
 		panel.OnDocumentReady = function(pnl)
@@ -36,26 +45,22 @@ if (CLIENT) then
 		end
 	end
 
+	-- PRIMARY metadata extractor. Runs client-side, driven by the server via
+	-- theater.FetchVideoMedata. Loads the invisible youtube_meta.html crawler,
+	-- which uses the YouTube IFrame API to emit
+	-- "METADATA:{title,isLive,duration}" or "ERROR:<code|msg>" to console.
 	function SERVICE:GetMetadata( data, callback )
+		local videoId = data
+		if istable(data) then
+			videoId = data.id or data.Data
+		end
 
 		local panel = self:CreateWebCrawler(callback)
 
 		local baseUrl = theater.GetCinemaURL("youtube_meta.html")
-		local hash = ("v=%s"):format(data)
-
-		local url = baseUrl .. "#" .. hash
-		panel:OpenURL(url)
-
+		panel:OpenURL(baseUrl .. ("#v=%s"):format(videoId))
 	end
 
-	function SERVICE:SearchFunctions( browser )
-		if not IsValid( browser ) then return end
-
-		-- Temporarily disables it, as it supposedly triggers the 
-		-- "Sign in to confirm you're not a bot" prompt.
-
-		-- browser:RunJavascript(BROWSER_JS)
-	end
 end
 
 function SERVICE:GetURLInfo( url )
@@ -92,28 +97,153 @@ function SERVICE:GetURLInfo( url )
 	return info.Data and info or false
 end
 
+---
+-- Helper function for converting ISO 8601 time strings.
+-- e.g. "PT1H23M45S" -> 5025
+--
+local function convertISO8601Time( duration )
+	if not isstring(duration) then return 0 end
+
+	local hours   = tonumber( string.match(duration, "(%d+)H") ) or 0
+	local minutes = tonumber( string.match(duration, "(%d+)M") ) or 0
+	local seconds = tonumber( string.match(duration, "(%d+)S") ) or 0
+
+	duration = hours * 3600 + minutes * 60 + seconds
+	return duration
+end
+
+---
+-- Get the value for an attribute from a html element
+--
+local function ParseElementAttribute( element, attribute )
+	if not element then return end
+	local output = string.match( element, attribute .. "%s-=%s-%b\"\"" )
+	if not output then return end
+	output = string.gsub( output, attribute .. "%s-=%s-", "" )
+	return string.sub( output, 2, -2 )
+end
+
+---
+-- Get the contents of a html element by removing tags.
+-- Used as fallback for when title cannot be found via meta tag.
+--
+local function ParseElementContent( element )
+	if not element then return end
+	local output = string.gsub( element, "^%s-<%w->%s-", "" )
+	return string.gsub( output, "%s-</%w->%s-$", "" )
+end
+
+-- Lua search patterns to find metadata from the html
+local patterns = {
+	["title"]          = "<meta%sproperty=\"og:title\"%s-content=%b\"\">",
+	["title_fallback"] = "<title>.-</title>",
+	["duration"]       = "<meta%sitemprop%s-=%s-\"duration\"%s-content%s-=%s-%b\"\">",
+	["live"]           = "<meta%sitemprop%s-=%s-\"isLiveBroadcast\"%s-content%s-=%s-%b\"\">",
+	["live_enddate"]   = "<meta%sitemprop%s-=%s-\"endDate\"%s-content%s-=%s-%b\"\">"
+}
+
+---
+-- Parse video metadata from a raw YouTube watch page HTML body.
+--
+function SERVICE:ParseYTMetaDataFromHTML( html )
+	local metadata = {}
+
+	-- Title: prefer og:title meta tag, fall back to <title> element
+	metadata.title = ParseElementAttribute( string.match(html, patterns["title"]), "content" )
+		or ParseElementContent( string.match(html, patterns["title_fallback"]) )
+
+	-- Decode HTML entities (e.g. &amp; -> &)
+	metadata.title = url.htmlentities_decode( metadata.title )
+
+	-- Live broadcast detection
+	local isLiveBroadcast = tobool( ParseElementAttribute( string.match(html, patterns["live"]), "content" ) )
+	local broadcastEndDate = string.match( html, patterns["live_enddate"] )
+
+	if isLiveBroadcast and not broadcastEndDate then
+		-- Ongoing live stream: mark duration as 0
+		metadata.isLive = true
+		metadata.duration = 0
+	else
+		metadata.isLive = false
+
+		-- Try the legacy <meta itemprop="duration"> tag (ISO 8601) first.
+		-- YouTube removed this tag around 2021, so it will usually be absent.
+		local durationISO8601 = ParseElementAttribute( string.match(html, patterns["duration"]), "content" )
+		if isstring(durationISO8601) then
+			metadata.duration = math.max( 1, convertISO8601Time(durationISO8601) )
+		else
+			-- Modern fallback: parse lengthSeconds from the ytInitialPlayerResponse
+			-- JSON blob that YouTube embeds directly in the page HTML.
+			local lengthSeconds = tonumber( string.match(html, '"lengthSeconds"%s*:%s*"(%d+)"') )
+			if lengthSeconds then
+				metadata.duration = math.max( 1, lengthSeconds )
+			end
+		end
+	end
+
+	return metadata
+end
+
 function SERVICE:GetVideoInfo( data, onSuccess, onFailure )
 
-	theater.FetchVideoMedata( data:GetOwner(), data, function(metadata)
+	-- Metadata is fetched server-side.
+	if not SERVER then return end
 
-		if metadata.err then
-			return onFailure(metadata.err)
-		end
+	local videoId = data:Data()
 
+	-- Builds the info table from metadata and calls onSuccess.
+	-- Shared by both the primary crawler path and the HTML scraper fallback.
+	local function buildInfo( title, isLive, duration )
 		local info = {}
-		info.title = metadata.title
-		info.thumbnail = ("https://img.youtube.com/vi/%s/mqdefault.jpg"):format(data:Data())
+		info.title = title
+		info.thumbnail = ("https://img.youtube.com/vi/%s/mqdefault.jpg"):format(videoId)
 
-		if metadata.isLive then
+		if isLive then
 			info.type = "youtubelive"
 			info.duration = 0
 		else
-			info.duration = metadata.duration
+			info.duration = tonumber(duration) or 0
 		end
 
 		if onSuccess then
 			pcall(onSuccess, info)
 		end
+	end
+
+	-- FALLBACK: server-side scraper of the raw YouTube watch page HTML.
+	-- Triggered whenever the primary client-side crawler is unavailable or errors.
+	local function runHTMLScraperFallback( primaryError )
+		local watchUrl = ("https://www.youtube.com/watch?v=%s"):format(videoId)
+
+		self:Fetch(watchUrl, function(body, length, headers, code)
+
+			local ok, metadata = pcall(self.ParseYTMetaDataFromHTML, self, body)
+
+			if not ok or not metadata or not metadata.title then
+				-- Prefer the crawler error, else the generic localized key.
+				return onFailure and onFailure( primaryError or "Theater_RequestFailed" )
+			end
+
+			buildInfo( metadata.title, metadata.isLive, metadata.duration )
+
+		end, function( err )
+			-- HTTP request itself failed (timeout, non-200, connection error).
+			if onFailure then
+				onFailure( primaryError or err or "Theater_RequestFailed" )
+			end
+		end)
+	end
+
+	-- PRIMARY: client-side HTML crawler (youtube_meta.html) via the IFrame API.
+	-- Networks the request to the video's owner client and awaits metadata back.
+	theater.FetchVideoMedata( data:GetOwner(), data, function(metadata)
+
+		if not metadata or metadata.err then
+			-- Crawler unavailable or errored: attempt the server-side scraper.
+			return runHTMLScraperFallback( metadata and metadata.err )
+		end
+
+		buildInfo( metadata.title, metadata.isLive, metadata.duration )
 	end)
 
 end
@@ -129,11 +259,3 @@ theater.RegisterService( "youtubelive", {
 	Hidden = true,
 	LoadProvider = CLIENT and SERVICE.LoadProvider or function() end
 } )
-
--- theater.RegisterService( "youtubensfw", {
--- 	Name = "YouTube NSFW",
--- 	IsTimed = true,
--- 	NeedsCodecFix = false,
--- 	Hidden = true,
--- 	LoadProvider = CLIENT and SERVICE.LoadProvider or function() end
--- } )
