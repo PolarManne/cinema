@@ -11,8 +11,9 @@ const services = [
 	{ name: 'Kick', icon: 'kick', url: 'https://kick.com/', action: 'select', requiresCodec: true },
 	{ name: 'Bilibili', icon: 'bilibili', url: 'https://www.bilibili.com/', action: 'open', requiresCodec: true },
 	{ name: 'Archive', icon: 'archive', url: 'https://archive.org/details/movies', action: 'select', requiresCodec: true },
-	{ name: 'VK Видео', icon: 'vk', url: 'https://vkvideo.ru/', action: 'select', requiresCodec: true },
-	{ name: 'Одноклассники', icon: 'ok', url: 'https://ok.ru/video', action: 'select', requiresCodec: true },
+	{ name: 'Secret Stash', icon: 'madhammer', url: 'https://video.madhammer.club', action: 'select', requiresCodec: true },
+	{ name: 'Live TV', icon: 'tv', url: 'https://tv.madhammer.club', action: 'select', requiresCodec: true },
+	{ name: 'Upload Video', icon: 'upload', url: 'https://files.madhammer.club', action: 'open', requiresCodec: true },
 ];
 
 // Codec support detection

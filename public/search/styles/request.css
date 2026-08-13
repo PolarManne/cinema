@@ -132,6 +132,9 @@ body {
 .logo-archive { background-image: url(../images/logos/archive.png); }
 .logo-vk { background-image: url(../images/logos/vkvideo.svg); background-size: 40px; }
 .logo-ok { background-image: url(../images/logos/okru.png); }
+.logo-madhammer { background-image: url(../images/logos/robert.png); }
+.logo-tv { background-image: url(../images/logos/tv.png); }
+.logo-upload { background-image: url(../images/logos/upload.png); }
 
 /* Disabled service styles */
 .service-card.service-disabled {
