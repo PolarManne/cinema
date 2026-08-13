@@ -35,6 +35,24 @@
 		</div>
 	</div>
 
+	<div id="media-check-popup" class="codec-popup hidden" role="dialog" aria-modal="true" aria-labelledby="media-check-title">
+		<div class="popup-overlay" id="media-check-overlay"></div>
+		<div class="popup-content">
+			<div class="popup-header">
+				<h3 id="media-check-title">Video cannot be played</h3>
+				<button class="close-btn" id="media-check-close" type="button" aria-label="Close">&times;</button>
+			</div>
+			<div class="popup-body">
+				<p id="media-check-message"></p>
+				<ul class="track-list" id="media-check-tracks"></ul>
+			</div>
+			<div class="popup-actions">
+				<button class="btn-secondary" id="media-check-cancel" type="button">Close</button>
+				<button class="btn-primary hidden" id="media-check-continue" type="button">Request anyway</button>
+			</div>
+		</div>
+	</div>
+
 	<!-- Main container -->
 	<div class="app-container">
 		<!-- Services grid -->
@@ -63,7 +81,7 @@
 					</button>
 				</div>
 				<div class="supported-formats">
-					<span>Supports common share links from supported services, images (JPG, PNG, GIF, BMP), video files (MP4, MOV, MKV, WebM), audio files (MP3, WAV, OGG, M4A, AAC, FLAC), and streaming formats (DASH, M3U8), also Google Drive, Mega and Jellyfin (details url) links</span>
+					<span>Supports common share links, images (JPG, PNG, GIF, BMP), video containers (MP4, MOV, MKV, WebM), audio files (OGG, MP3, FLAC, M4A, WAV), streaming formats (DASH, M3U8), and Google Drive, Mega, and Jellyfin details links</span>
 				</div>
 			</div>
 		</section>
@@ -77,6 +95,7 @@
 		</div>
 	</div>
 
+	<script src="./scripts/media-codec-checker.js"></script>
 	<script src="./scripts/request.js"></script>
 </body>
 </html>

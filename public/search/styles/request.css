@@ -376,6 +376,30 @@ body {
 	line-height: 1.4;
 }
 
+.track-list {
+	list-style: none;
+	text-align: left;
+	background: var(--bg-card);
+	border-radius: var(--border-radius);
+	padding: 1rem;
+}
+
+.track-list:empty {
+	display: none;
+}
+
+.track-list li + li {
+	margin-top: 0.5rem;
+}
+
+.track-supported {
+	color: var(--accent-color);
+}
+
+.track-unsupported {
+	color: var(--secondary-color);
+}
+
 .popup-actions {
 	display: flex;
 	gap: 1rem;
@@ -406,6 +430,10 @@ body {
 
 .btn-primary:hover, .btn-secondary:hover {
 	transform: translateY(-2px);
+}
+
+.popup-actions .hidden {
+	display: none;
 }
 
 /* Status indicator */
