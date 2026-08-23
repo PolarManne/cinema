@@ -39,6 +39,8 @@
 	<div id="player-container"></div>
 
 	<script>
+		"use strict";
+
 		// Get parameter from hash first, then fall back to query parameters
 		function getParameter(name) {
 			// Try hash parameters first
@@ -56,10 +58,115 @@
 			return null;
 		}
 
+		const bridgeVersion = 1;
+		const requestedBridgeInstanceId = getParameter('instance') || '';
+		const bridgeInstanceId = /^[a-zA-Z0-9_-]{1,64}$/.test(requestedBridgeInstanceId)
+			? requestedBridgeInstanceId
+			: '';
+		let bridgeParentOrigin = null;
+
+		if (getParameter('bridge') === '1' && bridgeInstanceId) {
+			try {
+				const requestedOrigin = new URL(getParameter('origin'));
+				if (requestedOrigin.protocol === 'http:' || requestedOrigin.protocol === 'https:') {
+					bridgeParentOrigin = requestedOrigin.origin;
+				}
+			} catch (error) {
+				console.log('ERROR:Invalid web relay parent origin');
+			}
+		}
+
+		function postBridgeMessage(type, data) {
+			if (!bridgeParentOrigin || window.parent === window) return;
+
+			window.parent.postMessage({
+				...data,
+				source: 'cinema-youtube',
+				version: bridgeVersion,
+				instanceId: bridgeInstanceId,
+				type: type
+			}, bridgeParentOrigin);
+		}
+
+		function getBridgeState() {
+			const controller = window.cinema_controller;
+			let duration = 0;
+			let muted = true;
+			let playerState = null;
+
+			if (player) {
+				try { duration = Number(player.getDuration()) || 0; } catch (error) {}
+				try { muted = player.isMuted(); } catch (error) {}
+				try { playerState = player.getPlayerState(); } catch (error) {}
+			}
+
+			return {
+				currentTime: controller ? Number(controller.currentTime) || 0 : 0,
+				paused: controller ? controller.paused : true,
+				duration: duration,
+				volume: controller ? Number(controller.volume) || 0 : 0,
+				muted: muted,
+				playerState: playerState
+			};
+		}
+
+		function postBridgeState() {
+			postBridgeMessage('state', getBridgeState());
+		}
+
+		window.addEventListener('message', function (event) {
+			if (!bridgeParentOrigin || event.source !== window.parent || event.origin !== bridgeParentOrigin) return;
+
+			const message = event.data;
+			if (!message || message.source !== 'cinema-webrelay' ||
+				message.version !== bridgeVersion || message.instanceId !== bridgeInstanceId ||
+				message.type !== 'command') return;
+
+			const controller = window.cinema_controller;
+			if (!controller && message.command !== 'getState') return;
+
+			switch (message.command) {
+				case 'play':
+					controller.play();
+					break;
+				case 'pause':
+					controller.pause();
+					break;
+				case 'seek': {
+					const seconds = message.value;
+					if (typeof seconds !== 'number' || !Number.isFinite(seconds)) return;
+					const duration = player ? Number(player.getDuration()) || 0 : 0;
+					controller.currentTime = Math.max(0, duration > 0 ? Math.min(seconds, duration) : seconds);
+					break;
+				}
+				case 'setVolume': {
+					const volume = message.value;
+					if (typeof volume !== 'number' || !Number.isFinite(volume)) return;
+					controller.volume = Math.max(0, Math.min(volume, 1));
+					break;
+				}
+				case 'setMuted':
+					if (!player || typeof message.value !== 'boolean') return;
+					if (message.value) {
+						player.mute();
+					} else {
+						player.unMute();
+					}
+					break;
+				case 'getState':
+					break;
+				default:
+					return;
+			}
+
+			postBridgeState();
+		});
+
 		const tag = document.createElement('script');
 		tag.src = "https://www.youtube.com/iframe_api";
 		tag.onerror = function () {
 			console.log("ERROR:Failed to load YouTube IFrame API");
+			postBridgeMessage('error', { message: 'Failed to load YouTube IFrame API' });
 		};
 		document.head.appendChild(tag);
 
@@ -125,7 +232,12 @@
 						}
 
 						window.cinema_controller = wrapper;
-						exTheater.controllerReady();
+						if (typeof exTheater !== 'undefined' && exTheater &&
+							typeof exTheater.controllerReady === 'function') {
+							exTheater.controllerReady();
+						}
+						postBridgeMessage('ready', {});
+						postBridgeState();
 					},
 					onStateChange: (e) => {
 						if (e.data === YT.PlayerState.PLAYING) {
@@ -141,6 +253,11 @@
 							e.data === YT.PlayerState.BUFFERING) {
 							player.unloadModule('captions');
 						}
+
+						postBridgeState();
+					},
+					onError: (e) => {
+						postBridgeMessage('error', { message: 'YouTube player error', code: e.data });
 					},
 					onApiChange: () => {
 						// Captions module has (re)loaded — force it off. Cover both
