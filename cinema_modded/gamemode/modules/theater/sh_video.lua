@@ -193,7 +193,8 @@ if SERVER then
 		if self:Type() ~= "" then
 
 			-- Query info from local database
-			local results = GetVideoLog(self:Data(), self:Type())
+			local results = IsVideoCacheable(self:Type()) and
+				GetVideoLog(self:Data(), self:Type()) or nil
 			if results ~= nil and istable(results) then
 
 				results = results[1]

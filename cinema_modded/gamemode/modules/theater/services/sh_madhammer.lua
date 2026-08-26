@@ -227,8 +227,54 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 					}
 				},
 				CodecProfiles = {
-					{ Type = "VideoAudio", Codec = "aac", Conditions = {} },
-					{ Type = "Video", Codec = "h264", Conditions = {} }
+					{
+						Type = "VideoAudio",
+						Codec = "aac",
+						Conditions = {
+							{
+								Condition = "Equals",
+								Property = "IsSecondaryAudio",
+								Value = "false",
+								IsRequired = false
+							}
+						}
+					},
+					{
+						Type = "Video",
+						Codec = "h264",
+						Conditions = {
+							{
+								Condition = "NotEquals",
+								Property = "IsAnamorphic",
+								Value = "true",
+								IsRequired = false
+							},
+							{
+								Condition = "EqualsAny",
+								Property = "VideoProfile",
+								Value = "high|main|baseline|constrained baseline",
+								IsRequired = false
+							},
+							{
+								Condition = "EqualsAny",
+								Property = "VideoRangeType",
+								Value = "SDR",
+								IsRequired = false
+							},
+							{
+								Condition = "LessThanEqual",
+								Property = "VideoLevel",
+								Value = "52",
+								IsRequired = false
+							},
+							{
+								Condition = "NotEquals",
+								Property = "IsInterlaced",
+								Value = "true",
+								IsRequired = false
+							}
+						}
+					}
 				}
 			}
 		})

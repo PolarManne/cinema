@@ -6,13 +6,34 @@ local SERVICE = {
 
 	NeedsCodecFix = true,
 	ExtentedVideoInfo = true,
-	NeedsExtraChecks = true
+	NeedsExtraChecks = true,
+
+	-- The selected file name is part of the resolved video data. Cinema's
+	-- metadata cache does not retain that field, so cached results cannot be used
+	-- by clients which need the direct Archive download URL.
+	IsCacheable = false
 
 }
 
 -- API endpoints
 local METADATA_URL = "https://archive.org/metadata/%s"
 local EMBED_URL = "https://archive.org/embed/%s?autoplay=1"
+
+local function EncodeArchivePath(value)
+	return tostring(value or ""):gsub("([^%w%-._~/])", function(character)
+		return string.format("%%%02X", string.byte(character))
+	end)
+end
+
+local function SplitVideoData(value)
+	local raw = tostring(value or "")
+	local separator = raw:find(",", 1, true)
+	if not separator then
+		return raw, nil
+	end
+
+	return raw:sub(1, separator - 1), raw:sub(separator + 1)
+end
 
 -- format support
 local VALID_FORMATS = {
@@ -29,16 +50,31 @@ local VALID_FORMATS = {
 	["VBR MP3"] = true,
 }
 
+local FORMAT_PRIORITY = {
+	["h.264 IA"] = 1,
+	["h.264"] = 2,
+	["MPEG4"] = 3,
+	["MP4"] = 4,
+	["WebM"] = 5,
+	["Ogg Video"] = 6,
+	["MOV"] = 7,
+	["MKV"] = 8,
+	["AVI"] = 9,
+	["VBR MP3"] = 10,
+	["Flac"] = 11,
+}
+
 -- file selection logic
 local function FindBestVideoFile(files, requestedFile)
-	local candidates = {}
+	local bestCandidate = nil
+	local bestPriority = math.huge
 
-	for _, file in pairs(files) do
+	for _, file in ipairs(files) do
 		if VALID_FORMATS[file.format] and file.name then
 			-- Prioritize requested file
 			if requestedFile then
-				local normalizedRequested = requestedFile:gsub("+", " ")
-				local normalizedFile = file.name:gsub("+", " ")
+				local normalizedRequested = requestedFile:gsub("%+", " ")
+				local normalizedFile = file.name:gsub("%+", " ")
 
 				if file.original == normalizedRequested or
 				   file.name == requestedFile or
@@ -47,14 +83,15 @@ local function FindBestVideoFile(files, requestedFile)
 				end
 			end
 
-			table.insert(candidates, file)
+			local priority = FORMAT_PRIORITY[file.format] or math.huge
+			if priority < bestPriority then
+				bestCandidate = file
+				bestPriority = priority
+			end
 		end
 	end
 
-	if #candidates == 0 then return nil end
-
-	-- If no file was requested, take the first one from the list
-	return candidates[1]
+	return bestCandidate
 end
 
 -- title generation
@@ -68,7 +105,7 @@ local function GenerateTitle(response, file, identifier)
 		-- Add file info if it's part of a collection
 		if file.name and file.name ~= title then
 			local fileName = file.name:gsub("%.%w+$", "") -- Remove extension
-			fileName = fileName:gsub("+", " ") -- Replace + with spaces
+			fileName = fileName:gsub("%+", " ") -- Replace + with spaces
 			return title .. " - " .. fileName
 		end
 
@@ -77,7 +114,7 @@ local function GenerateTitle(response, file, identifier)
 
 	-- Fallback to file name
 	if file.name then
-		local title = file.name:gsub("%.%w+$", ""):gsub("+", " ")
+		local title = file.name:gsub("%.%w+$", ""):gsub("%+", " ")
 		return title
 	end
 
@@ -361,11 +398,10 @@ if CLIENT then
 	]]
 
 	function SERVICE:LoadProvider(Video, panel)
-		local parts = string.Explode(",", Video:Data())
-		local identifier = parts[1]
+		local identifier, selectedFile = SplitVideoData(Video:Data())
 
-		if parts[2] then
-			identifier = (parts[2] and identifier .. "/" .. parts[2])
+		if selectedFile and selectedFile ~= "" then
+			identifier = identifier .. "/" .. selectedFile
 		end
 
 		panel:OpenURL( EMBED_URL:format(identifier) )
@@ -395,6 +431,7 @@ function SERVICE:GetURLInfo(url)
 	-- Handle URL encoding
 	if file then
 		file = url2.unescape(file)
+		file = EncodeArchivePath(file)
 	end
 
 	return {
@@ -403,9 +440,10 @@ function SERVICE:GetURLInfo(url)
 end
 
 function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
-	local parts = string.Explode(",", data:Data())
-	local identifier = parts[1]
-	local requestedFile = parts[2]
+	local identifier, requestedFile = SplitVideoData(data:Data())
+	if requestedFile then
+		requestedFile = url2.unescape(requestedFile)
+	end
 
 	local function processMetadata(body, length, headers, code)
 		if code ~= 200 or not body then
@@ -424,8 +462,9 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 
 		local info = {
 			title = GenerateTitle(response, bestMatch, identifier),
-			duration = math.Round(bestMatch.length or 0),
-			thumbnail = GetThumbnail(response.files, bestMatch.name)
+			duration = math.Round(tonumber(bestMatch.length) or 0),
+			thumbnail = GetThumbnail(response.files, bestMatch.name),
+			data = identifier .. "," .. EncodeArchivePath(bestMatch.name)
 		}
 
 		if onSuccess then
