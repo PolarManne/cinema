@@ -133,7 +133,7 @@ Location.Add( "gm_aquateenhouse",
 		Theater = {
 			Name = "Carl's Garage",
 			Flags = THEATER_PRIVATE,
-			Pos = Vector( 738, 3632, 270 ),
+			Pos = Vector( 738, 3632.25, 270 ),
 			Ang = Angle(0,180,0),
 			Width = 242,
 			Height = 136,
@@ -213,7 +213,7 @@ Location.Add( "gm_aquateenhouse",
 	},
 	["Secret Room"] =
 	{
-		Min = Vector( -2226, -5286, -12),
+		Min = Vector( -2226, -5286, -42),
 		Max = Vector( 1218, -1896, 910),
 		Theater = {
 			Name = "Secret Room",
