@@ -84,6 +84,8 @@ function PLAYERLIST:Think()
 			end
 		end
 
+		hook.Run( "CinemaPopulateScoreboardPlayers", self )
+
 		self.ServerName:Update()
 		self:InvalidateLayout()
 
@@ -93,14 +95,28 @@ function PLAYERLIST:Think()
 
 end
 
+local function GetPanelPlayerSort( panel )
+	if panel and panel.GetPlayerListName then
+		return panel:GetPlayerListName(), panel.GetPlayerListId and panel:GetPlayerListId() or ""
+	end
+	if panel and IsValid( panel.Player ) then
+		return panel.Player:Nick(), "gmod:" .. tostring( panel.Player:UserID() )
+	end
+	return nil
+end
+
 function PLAYERLIST:PerformLayout()
 
 	table.sort( self.PlayerList.Items, function( a, b )
 
-		if not a or not a.Player or not IsValid(a.Player) then return false end
-		if not b or not b.Player or not IsValid(b.Player) then return true end
+		local aName, aId = GetPanelPlayerSort( a )
+		local bName, bId = GetPanelPlayerSort( b )
+		if not aName then return false end
+		if not bName then return true end
 
-		return string.lower( a.Player:Nick() ) < string.lower( b.Player:Nick() )
+		aName = string.lower( aName )
+		bName = string.lower( bName )
+		return aName == bName and aId < bId or aName < bName
 
 	end )
 
