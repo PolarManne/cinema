@@ -12,6 +12,7 @@ local JELLYFIN_API_KEY_VIDEO = "d3d0f4c05d5540a2822a6acaaabc6c70"
 local JELLYFIN_API_KEY_TV = "23bc7d59276448ff9b54f9f301e1eb34"
 local JELLYFIN_USER_ID_VIDEO = "da63609ce9d9467eaa0be65fb92e64aa"
 local JELLYFIN_USER_ID_TV = "7c098e85337f438cae231586a1517015"
+local JELLYFIN_THUMBNAIL_MAX_WIDTH = 1280
 
 local SERVICE = {
 	Name = "madhammer URL",
@@ -64,6 +65,68 @@ local function GetJellyfinBaseURL(url)
 	end
 
 	return protocol .. "://" .. host .. port .. basePath
+end
+
+local function EncodeQueryValue(value)
+	local encoded = tostring(value):gsub("([^%w%-_%.~])", function(character)
+		return string.format("%%%02X", string.byte(character))
+	end)
+	return encoded
+end
+
+local function FirstImageTag(tags)
+	if not istable(tags) then
+		return nil
+	end
+
+	local tag = tags[1]
+	if not isstring(tag) or tag == "" then
+		return nil
+	end
+
+	return tag
+end
+
+local function SelectThumbnailImage(itemData)
+	if not istable(itemData) then
+		return nil
+	end
+
+	local imageTags = istable(itemData.ImageTags) and itemData.ImageTags or {}
+	for _, imageType in ipairs({ "Thumb", "Primary", "Box" }) do
+		local tag = imageTags[imageType]
+		if isstring(tag) and tag ~= "" then
+			return imageType, tag
+		end
+	end
+
+	local screenshotTag = FirstImageTag(itemData.ScreenshotImageTags)
+	if screenshotTag then
+		return "Screenshot", screenshotTag, 0
+	end
+
+	local backdropTag = FirstImageTag(itemData.BackdropImageTags)
+	if backdropTag then
+		return "Backdrop", backdropTag, 0
+	end
+
+	return nil
+end
+
+local function BuildThumbnailURL(baseURL, itemId, apiKey, itemData)
+	local imageType, imageTag, imageIndex = SelectThumbnailImage(itemData)
+	if not imageType then
+		return nil
+	end
+
+	local imageURL = baseURL .. "/Items/" .. itemId .. "/Images/" .. imageType
+	if imageIndex then
+		imageURL = imageURL .. "/" .. tostring(imageIndex)
+	end
+
+	return imageURL .. "?maxWidth=" .. tostring(JELLYFIN_THUMBNAIL_MAX_WIDTH) ..
+		"&quality=90&tag=" .. EncodeQueryValue(imageTag) ..
+		"&api_key=" .. EncodeQueryValue(apiKey)
 end
 
 function SERVICE:Match(url)
@@ -341,6 +404,10 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 							duration = 0,
 							data = liveURL
 						}
+						local thumbnail = BuildThumbnailURL(baseURL, itemId, apiKey, itemData)
+						if thumbnail then
+							info.thumbnail = thumbnail
+						end
 
 						if onSuccess then
 							pcall(onSuccess, info)
@@ -392,6 +459,10 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 					title = title,
 					duration = math.max(0, math.Round(tonumber(metadata.duration) or 0))
 				}
+				local thumbnail = BuildThumbnailURL(baseURL, itemId, apiKey, jsonData)
+				if thumbnail then
+					info.thumbnail = thumbnail
+				end
 				if onSuccess then pcall(onSuccess, info) end
 			end)
 		end,
