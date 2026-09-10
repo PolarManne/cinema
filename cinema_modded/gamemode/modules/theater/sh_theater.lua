@@ -914,6 +914,39 @@ if SERVER then
 
 	end
 
+	function THEATER:PurchaseQueuedVideoPriorityBySteamID64( steamId, id )
+
+		if not isstring(steamId) or not steamId:match("^%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d$") or
+			not isnumber(id) then return false, "invalid_request" end
+
+		for _, vid in pairs(self._Queue) do
+			if vid.id == id then
+				if not vid:IsOwnerSteamID64(steamId) then return false, "not_owner" end
+				if vid:IsPriority() then return false, "already_priority" end
+				if not IsPriorityPurchaseAvailable() then return false, "purchase_unavailable" end
+
+				local price = GetPriorityPrice(vid:Duration())
+				if price <= 0 then return false, "live_video" end
+
+				local purchased, reason = hook.Run(
+					"TheaterPurchaseVideoPriorityBySteamID64", steamId, self, vid, price)
+				if purchased ~= true then
+					local resultCodes = {
+						insufficient_points = true,
+						purchase_failed = true,
+						purchase_unavailable = true
+					}
+					return false, resultCodes[reason] and reason or "purchase_failed"
+				end
+
+				vid:SetPriority(true)
+				return true, "ok"
+			end
+		end
+
+		return false, "queue_item_missing"
+	end
+
 	/*
 		Vote Skip
 	*/
@@ -925,7 +958,14 @@ if SERVER then
 		self:ValidateSkipVotes()
 		self:ValidateExternalSkipVotes()
 
-		return table.Count(self._SkipVotes) + table.Count(self._ExternalSkipVotes)
+		local count = table.Count(self._SkipVotes)
+		for identity in pairs(self._ExternalSkipVotes) do
+			local ply = hook.Run("TheaterResolveExternalSkipVoter", identity, self)
+			if not IsValid(ply) or not table.HasValue(self._SkipVotes, ply) then
+				count = count + 1
+			end
+		end
+		return count
 	end
 
 	function THEATER:NumRequiredVoteSkips()
@@ -973,17 +1013,27 @@ if SERVER then
 	end
 
 	function THEATER:HasPlayerVotedToSkip( ply )
-		return table.HasValue(self._SkipVotes, ply)
+		if table.HasValue(self._SkipVotes, ply) then return true end
+		self:ValidateExternalSkipVotes()
+		local identity = hook.Run("TheaterGetExternalSkipVoteIdentity", ply, self)
+		return isstring(identity) and self._ExternalSkipVotes[identity] == true
 	end
 
 	function THEATER:HasExternalVotedToSkip( identity )
 		self:ValidateExternalSkipVotes()
-		return self._ExternalSkipVotes[identity] == true
+		if self._ExternalSkipVotes[identity] == true then return true end
+		local ply = hook.Run("TheaterResolveExternalSkipVoter", identity, self)
+		return IsValid(ply) and table.HasValue(self._SkipVotes, ply)
 	end
 
 	function THEATER:GetExternalSkipVotes()
 		self:ValidateExternalSkipVotes()
 		return self._ExternalSkipVotes
+	end
+
+	function THEATER:GetSkipVotes()
+		self:ValidateSkipVotes()
+		return self._SkipVotes
 	end
 
 	function THEATER:VoteSkipByIdentity( identity, voterName )

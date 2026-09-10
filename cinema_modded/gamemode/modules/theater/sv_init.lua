@@ -191,10 +191,10 @@ function RequestTheaterInfo( ply, force )
 				Priority = vid:IsPriority()
 			}
 
-			-- Send the player's vote value if they have voted
-			local vote = vid:GetVoteByPlayer(ply)
-			if vote then
-				item.Value = vote.value
+			-- Send the player's vote value from either connected client
+			local voteValue = vid:GetVoteValueByPlayer(ply)
+			if voteValue then
+				item.Value = voteValue
 			end
 
 			-- Send whether they're the owner of the video

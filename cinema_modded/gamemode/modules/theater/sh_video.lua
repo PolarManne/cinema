@@ -216,8 +216,11 @@ if SERVER then
 		for _, vote in pairs(self._Votes) do
 			count = count + vote.value
 		end
-		for _, value in pairs(self._ExternalVotes) do
-			count = count + value
+		for identity, value in pairs(self._ExternalVotes) do
+			local ply = hook.Run("TheaterResolveExternalVideoVoter", identity, self)
+			if not IsValid(ply) or not self:GetVoteByPlayer(ply) then
+				count = count + value
+			end
 		end
 		return count
 	end
@@ -240,6 +243,10 @@ if SERVER then
 	function VIDEO:AddExternalVote(identity, positive)
 		if not isstring(identity) or #identity < 1 or #identity > 64 then return false end
 		self._ExternalVotes = self._ExternalVotes or {}
+		local ply = hook.Run("TheaterResolveExternalVideoVoter", identity, self)
+		if IsValid(ply) then
+			return self:AddVote(ply, positive)
+		end
 		local value = positive and 1 or -1
 		if self._ExternalVotes[identity] == value then
 			self._ExternalVotes[identity] = nil
@@ -280,14 +287,30 @@ if SERVER then
 	end
 
 	function VIDEO:HasPlayerVoted(ply)
-		return self:GetVoteByPlayer(ply) ~= nil
+		return self:GetVoteValueByPlayer(ply) ~= nil
+	end
+
+	function VIDEO:GetVoteValueByPlayer(ply)
+		local vote = self:GetVoteByPlayer(ply)
+		if vote then return vote.value end
+
+		self:ValidateExternalVotes()
+		local identity = hook.Run("TheaterGetExternalVideoVoteIdentity", ply, self)
+		return isstring(identity) and self._ExternalVotes[identity] or nil
 	end
 
 	function VIDEO:AddVote( ply, positive )
 
-		if not IsValid(ply) then return end
+		if not IsValid(ply) then return false end
+		self:ValidateExternalVotes()
 
 		local vote = self:GetVoteByPlayer(ply)
+		local externalIdentity = hook.Run("TheaterGetExternalVideoVoteIdentity", ply, self)
+		local externalValue = isstring(externalIdentity) and self._ExternalVotes[externalIdentity] or nil
+		if vote and externalValue then
+			self._ExternalVotes[externalIdentity] = nil
+			externalValue = nil
+		end
 
 		if vote then
 
@@ -295,6 +318,14 @@ if SERVER then
 				self:RemoveVoteByPlayer(ply)
 			else
 				vote.value = positive and 1 or -1
+			end
+
+		elseif externalValue then
+
+			if (externalValue > 0 and positive) or (externalValue < 0 and not positive) then
+				self._ExternalVotes[externalIdentity] = nil
+			else
+				self._ExternalVotes[externalIdentity] = positive and 1 or -1
 			end
 
 		else
@@ -305,6 +336,7 @@ if SERVER then
 			})
 
 		end
+		return true
 
 	end
 
