@@ -823,7 +823,7 @@ if SERVER then
 			if vid.id == id then
 
 				-- Remove video if player is video owner, theater owner, or an admin
-				if (vid:GetOwner() == ply) or
+				if vid:IsOwner(ply) or
 					(self:GetOwner() == ply) or -- private theater
 					ply:IsAdmin() then
 
@@ -836,6 +836,21 @@ if SERVER then
 			end
 		end
 
+	end
+
+	function THEATER:RemoveQueuedVideoBySteamID64(steamId, id)
+		if not isstring(steamId) or not steamId:match("^%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d$") or
+			not isnumber(id) then return false, "invalid_request" end
+
+		for index, video in ipairs(self._Queue) do
+			if video.id == id then
+				if not video:IsOwnerSteamID64(steamId) then return false, "not_owner" end
+				table.remove(self._Queue, index)
+				return true, "ok"
+			end
+		end
+
+		return false, "queue_item_missing"
 	end
 
 	function THEATER:ToggleVideoPriority( ply, id, action )
@@ -854,7 +869,7 @@ if SERVER then
 				end
 
 				-- Non-privileged users can only purchase priority for their own videos.
-				if vid:GetOwner() ~= ply then
+				if not vid:IsOwner(ply) then
 					break
 				end
 

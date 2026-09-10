@@ -19,6 +19,8 @@ function VIDEO:Init( info, ply, externalOwner )
 			(istable(externalOwner) and externalOwner.name or "") -- in case they disconnect
 		o._OwnerSteamID = IsValid(ply) and ply:SteamID() or
 			(istable(externalOwner) and externalOwner.steamId or "")
+		o._OwnerSteamID64 = IsValid(ply) and not ply:IsBot() and ply:SteamID64() or
+			(istable(externalOwner) and externalOwner.steamId or "")
 		o._ExternalOwnerIdentity = istable(externalOwner) and externalOwner.identity or nil
 		o._MetadataPlayer = nil
 
@@ -95,6 +97,19 @@ function VIDEO:GetOwner()
 	return self._Owner
 end
 
+function VIDEO:IsOwner( ply )
+	if not IsValid(ply) then return false end
+	if self._Owner == ply then return true end
+	if not SERVER or ply:IsBot() then return false end
+
+	local steamId = self._OwnerSteamID
+	if isstring(steamId) and steamId ~= "" and steamId == ply:SteamID() then
+		return true
+	end
+
+	return self:IsOwnerSteamID64(ply:SteamID64())
+end
+
 function VIDEO:GetMetadataPlayer()
 	return self._MetadataPlayer
 end
@@ -154,6 +169,34 @@ function VIDEO:IsExternalRequest()
 end
 
 if SERVER then
+	function VIDEO:GetOwnerSteamID64()
+		if isstring(self._OwnerSteamID64) and self._OwnerSteamID64:match("^%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d$") then
+			return self._OwnerSteamID64
+		end
+
+		local owner = self:GetOwner()
+		if IsValid(owner) and not owner:IsBot() then
+			return owner:SteamID64()
+		end
+
+		local steamId = self._OwnerSteamID
+		if isstring(steamId) and steamId:match("^%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d$") then
+			return steamId
+		end
+		if isstring(steamId) and steamId:match("^STEAM_%d:%d:%d+$") then
+			local converted = util.SteamIDTo64(steamId)
+			if isstring(converted) and converted:match("^%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d$") then
+				return converted
+			end
+		end
+
+		return ""
+	end
+
+	function VIDEO:IsOwnerSteamID64(steamId)
+		return isstring(steamId) and steamId:match("^%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d%d$") ~= nil and
+			self:GetOwnerSteamID64() == steamId
+	end
 
 	function VIDEO:RequestTime()
 		return self._RequestTime

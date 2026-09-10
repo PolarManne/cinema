@@ -198,7 +198,7 @@ function RequestTheaterInfo( ply, force )
 			end
 
 			-- Send whether they're the owner of the video
-			if vid:GetOwner() == ply then
+			if vid:IsOwner(ply) then
 				item.Owner = true
 			end
 
