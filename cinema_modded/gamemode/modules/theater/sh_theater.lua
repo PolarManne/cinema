@@ -66,6 +66,7 @@ function THEATER:Init( locId, info )
 		o._QueueCount = 0
 
 		o._SkipVotes = {}
+		o._ExternalSkipVotes = {}
 
 		o._Finished = true
 
@@ -906,7 +907,10 @@ if SERVER then
 	end
 
 	function THEATER:NumVoteSkips()
-		return table.Count(self._SkipVotes)
+		self:ValidateSkipVotes()
+		self:ValidateExternalSkipVotes()
+
+		return table.Count(self._SkipVotes) + table.Count(self._ExternalSkipVotes)
 	end
 
 	function THEATER:NumRequiredVoteSkips()
@@ -916,20 +920,23 @@ if SERVER then
 		if ratio < 0 then
 			return -1
 		end
-		local numply = self:NumPlayers()
+		local externalPlayers = tonumber(hook.Run("TheaterGetExternalPlayerCount", self)) or 0
+		local numply = self:NumPlayers() + math.max(0, math.floor(externalPlayers))
 		if numply == 1 then
 			return 1
 		elseif numply > 0 and numply < 3 then
 			return 2 -- prevent players from walking in private theaters and skipping
 		else
-			return math.Round( self:NumPlayers() * ratio )
+			return math.Round( numply * ratio )
 		end
 
 	end
 
 	function THEATER:ClearSkipVotes()
-		if not self._SkipVotes then return end
+		self._SkipVotes = self._SkipVotes or {}
 		table.Empty(self._SkipVotes)
+		self._ExternalSkipVotes = self._ExternalSkipVotes or {}
+		table.Empty(self._ExternalSkipVotes)
 	end
 
 	function THEATER:ValidateSkipVotes()
@@ -940,8 +947,56 @@ if SERVER then
 		end
 	end
 
+	function THEATER:ValidateExternalSkipVotes()
+		self._ExternalSkipVotes = self._ExternalSkipVotes or {}
+		for identity in pairs(self._ExternalSkipVotes) do
+			if hook.Run("TheaterValidateExternalSkipVote", identity, self) ~= true then
+				self._ExternalSkipVotes[identity] = nil
+			end
+		end
+
+	end
+
 	function THEATER:HasPlayerVotedToSkip( ply )
 		return table.HasValue(self._SkipVotes, ply)
+	end
+
+	function THEATER:HasExternalVotedToSkip( identity )
+		self:ValidateExternalSkipVotes()
+		return self._ExternalSkipVotes[identity] == true
+	end
+
+	function THEATER:GetExternalSkipVotes()
+		self:ValidateExternalSkipVotes()
+		return self._ExternalSkipVotes
+	end
+
+	function THEATER:VoteSkipByIdentity( identity, voterName )
+		if not isstring(identity) or #identity < 1 or #identity > 64 then return false, "invalid_vote" end
+		voterName = isstring(voterName) and string.Trim(voterName) or "Web player"
+		if #voterName < 1 or #voterName > 64 or voterName:find("[%z\1-\31\127]") then
+			return false, "invalid_vote"
+		end
+		if self:IsQueueLocked() then return false, "queue_locked" end
+		if not self:IsPlaying() then return false, "nothing_playing" end
+		if self:NumRequiredVoteSkips() == -1 then return false, "voting_disabled" end
+		if hook.Run("TheaterValidateExternalSkipVote", identity, self) ~= true then
+			return false, "not_joined"
+		end
+		if self:HasExternalVotedToSkip(identity) then return false, "already_voted" end
+		if hook.Run("PreExternalVoteSkipAccept", identity, self) == false then return false, "rejected" end
+
+		self._ExternalSkipVotes[identity] = true
+		hook.Run("PostExternalVoteSkipAccept", identity, self)
+
+		net.Start( "TheaterVoteSkips" )
+			net.WriteString( voterName )
+			net.WriteUInt( self:NumVoteSkips(), 16 )
+			net.WriteUInt( self:NumRequiredVoteSkips(), 16 )
+		net.Send( self.Players )
+
+		self:CheckVoteSkip()
+		return true, "ok"
 	end
 
 	function THEATER:VoteSkip( ply )
@@ -975,8 +1030,8 @@ if SERVER then
 		-- Notify theater players of vote skip
 		net.Start( "TheaterVoteSkips" )
 			net.WriteString( ply:Nick() )
-			net.WriteInt( self:NumVoteSkips(), 7 ) -- 128 max players
-			net.WriteInt( self:NumRequiredVoteSkips(), 7 )
+			net.WriteUInt( self:NumVoteSkips(), 16 )
+			net.WriteUInt( self:NumRequiredVoteSkips(), 16 )
 		net.Send( self.Players )
 
 		-- Check if the current video can be skipped
@@ -989,11 +1044,12 @@ if SERVER then
 		-- Can't skip if the queue is locked
 		if self:IsQueueLocked() then return end
 
-		-- Can't skip if voteskip is disabled
-		if self:NumRequiredVoteSkips() == -1 then return end		
+		-- Can't skip if voteskip is disabled or nobody can vote
+		local required = self:NumRequiredVoteSkips()
+		if required <= 0 then return end
 
 		-- Skip the current video if the voteskip requirement is met
-		if self:NumVoteSkips() >= self:NumRequiredVoteSkips() then
+		if self:NumVoteSkips() >= required then
 
 			self:AnnounceToPlayers( "Theater_Voteskipped" )
 

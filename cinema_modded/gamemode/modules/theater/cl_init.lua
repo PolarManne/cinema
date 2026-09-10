@@ -450,8 +450,8 @@ net.Receive( "TheaterQueue", ReceiveQueue )
 function ReceiveVoteSkips()
 
 	local name = net.ReadString()
-	local skips = net.ReadInt(7)
-	local required = net.ReadInt(7)
+	local skips = net.ReadUInt(16)
+	local required = net.ReadUInt(16)
 
 	AddAnnouncement( {
 		"Theater_PlayerVoteSkipped",
