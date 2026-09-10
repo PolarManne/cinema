@@ -2,7 +2,7 @@ module( "theater", package.seeall )
 
 VIDEO = {}
 
-function VIDEO:Init( info, ply )
+function VIDEO:Init( info, ply, externalOwner )
 
 	local o = {}
 
@@ -15,12 +15,21 @@ function VIDEO:Init( info, ply )
 
 		o._RequestTime = CurTime()
 		o._Owner = ply
-		o._OwnerName = IsValid(ply) and ply:Nick() or "" -- in case they disconnect
-		o._OwnerSteamID = IsValid(ply) and ply:SteamID() or ""
+		o._OwnerName = IsValid(ply) and ply:Nick() or
+			(istable(externalOwner) and externalOwner.name or "") -- in case they disconnect
+		o._OwnerSteamID = IsValid(ply) and ply:SteamID() or
+			(istable(externalOwner) and externalOwner.steamId or "")
+		o._ExternalOwnerIdentity = istable(externalOwner) and externalOwner.identity or nil
+		o._MetadataPlayer = nil
 
 		o._Votes = {}
+		o._ExternalVotes = {}
 
-		o:AddVote(ply, true)
+		if o._ExternalOwnerIdentity then
+			o:AddExternalVote(o._ExternalOwnerIdentity, true)
+		else
+			o:AddVote(ply, true)
+		end
 	else
 		o._OwnerName = info.OwnerName
 		o._OwnerSteamID = info.OwnerSteamID
@@ -86,6 +95,40 @@ function VIDEO:GetOwner()
 	return self._Owner
 end
 
+function VIDEO:GetMetadataPlayer()
+	return self._MetadataPlayer
+end
+
+function VIDEO:SetMetadataPlayer( ply )
+	if SERVER then
+		self._MetadataPlayer = IsValid(ply) and ply or nil
+	end
+end
+
+function VIDEO:SetExternalMetadata( metadata )
+	if not SERVER or not istable(metadata) then return end
+	for key in pairs(metadata) do
+		if key ~= "title" and key ~= "duration" and key ~= "isLive" then return end
+	end
+	if not isnumber(metadata.duration) or metadata.duration ~= metadata.duration or
+		metadata.duration < 0 or metadata.duration > 31536000 then return end
+	if metadata.title ~= nil and (not isstring(metadata.title) or #metadata.title < 1 or
+		#metadata.title > 1024 or metadata.title:find("[%z\1-\31\127]")) then return end
+	if metadata.isLive ~= nil and not isbool(metadata.isLive) then return end
+
+	self._ExternalMetadata = {
+		duration = math.Round(metadata.duration),
+		title = metadata.title,
+		isLive = metadata.isLive
+	}
+end
+
+function VIDEO:ConsumeExternalMetadata()
+	local metadata = self._ExternalMetadata
+	self._ExternalMetadata = nil
+	return metadata
+end
+
 function VIDEO:GetOwnerName()
 	if IsValid(self:GetOwner()) then
 		return self:GetOwner():Nick()
@@ -100,6 +143,14 @@ function VIDEO:GetOwnerSteamID()
 	else
 		return self._OwnerSteamID
 	end
+end
+
+function VIDEO:GetExternalOwnerIdentity()
+	return self._ExternalOwnerIdentity
+end
+
+function VIDEO:IsExternalRequest()
+	return isstring(self._ExternalOwnerIdentity)
 end
 
 if SERVER then
@@ -117,11 +168,42 @@ if SERVER then
 
 	function VIDEO:GetNumVotes()
 		self:ValidateVotes()
+		self:ValidateExternalVotes()
 		local count = 0
 		for _, vote in pairs(self._Votes) do
 			count = count + vote.value
 		end
+		for _, value in pairs(self._ExternalVotes) do
+			count = count + value
+		end
 		return count
+	end
+
+	function VIDEO:GetExternalVotes()
+		self._ExternalVotes = self._ExternalVotes or {}
+		self:ValidateExternalVotes()
+		return self._ExternalVotes
+	end
+
+	function VIDEO:ValidateExternalVotes()
+		self._ExternalVotes = self._ExternalVotes or {}
+		for identity in pairs(self._ExternalVotes) do
+			if hook.Run("TheaterValidateExternalVideoVote", identity, self) ~= true then
+				self._ExternalVotes[identity] = nil
+			end
+		end
+	end
+
+	function VIDEO:AddExternalVote(identity, positive)
+		if not isstring(identity) or #identity < 1 or #identity > 64 then return false end
+		self._ExternalVotes = self._ExternalVotes or {}
+		local value = positive and 1 or -1
+		if self._ExternalVotes[identity] == value then
+			self._ExternalVotes[identity] = nil
+		else
+			self._ExternalVotes[identity] = value
+		end
+		return true
 	end
 
 	function VIDEO:ValidateVotes()

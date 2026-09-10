@@ -89,6 +89,16 @@
 			return null;
 		}
 
+		function postRelayResult(type, value) {
+			if (getParameter('relay') !== '1' || window.parent === window) return;
+			window.parent.postMessage({
+				v: 1,
+				type: type,
+				token: getParameter('token') || '',
+				value: value
+			}, window.location.origin);
+		}
+
 		// ─── IFrame API bootstrap ─────────────────────────────────────────────────
 
 		dbg("Hash: '" + window.location.hash + "' | Search: '" + window.location.search + "'");
@@ -102,6 +112,7 @@
 		tag.onerror = function() {
 			dbg("ERROR: IFrame API script failed to load (network error or blocked).");
 			console.log("ERROR:Failed to load YouTube IFrame API");
+			postRelayResult('cinema_metadata_error', 'YouTube IFrame API unavailable');
 		};
 		document.head.appendChild(tag);
 
@@ -195,6 +206,11 @@
 
 			dbg("Emitting METADATA: " + JSON.stringify(metadata));
 			console.log("METADATA:" + JSON.stringify(metadata));
+			postRelayResult('cinema_metadata', {
+				title: metadata.title,
+				duration: metadata.duration,
+				isLive: metadata.isLive
+			});
 		}
 
 		// ─── Player lifecycle ─────────────────────────────────────────────────────
@@ -299,6 +315,7 @@
 						const msg = YT_ERROR_CODES[event.data] || ("Unknown error code: " + event.data);
 						dbg("onError fired: code=" + event.data + " — " + msg);
 						console.log("ERROR:" + msg);
+						postRelayResult('cinema_metadata_error', msg);
 					}
 				}
 			});

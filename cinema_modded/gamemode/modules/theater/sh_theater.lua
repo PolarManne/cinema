@@ -564,6 +564,99 @@ if SERVER then
 
 	end
 
+	function THEATER:RequestVideoByIdentity(name, steamId, url, metadata, callback)
+		if isfunction(metadata) and callback == nil then
+			callback = metadata
+			metadata = nil
+		end
+
+		local finished = false
+		local function Finish(code)
+			if finished then return end
+			finished = true
+			if callback then callback(code) end
+		end
+
+		if not isstring(name) or name == "" or #name > 64 or not isstring(steamId) or
+			#steamId ~= 17 or not steamId:match("^%d+$") or not isstring(url) or
+			#url < 1 or #url > 4096 then
+			return Finish("invalid_request")
+		end
+		if self:IsPrivate() and self:IsQueueLocked() then return Finish("queue_locked") end
+
+		local identity = "web:" .. steamId
+		local info = ExtractURLData(url, self)
+		if not info then return Finish("invalid_url") end
+
+		for _, queued in pairs(self:GetQueue()) do
+			if queued:Type() == info.Type and queued:Data() == info.Data then
+				queued:AddExternalVote(identity, true)
+				return Finish("duplicate_voted")
+			end
+		end
+
+		local video = VIDEO:Init(info, nil, {
+			name = name,
+			steamId = steamId,
+			identity = identity
+		})
+		video:SetExternalMetadata(metadata)
+		for _, ply in ipairs(self.Players) do
+			if IsValid(ply) and not ply:IsBot() then
+				video:SetMetadataPlayer(ply)
+				break
+			end
+		end
+		if not IsValid(video:GetMetadataPlayer()) then
+			for _, ply in ipairs(player.GetHumans()) do
+				if IsValid(ply) then
+					video:SetMetadataPlayer(ply)
+					break
+				end
+			end
+		end
+
+		local originalType = video:Type()
+		timer.Simple(90, function()
+			Finish("request_failed")
+		end)
+		video:RequestInfo(function(success)
+			if finished then return end
+
+			if success and originalType ~= video:Type() then
+				local service = GetServiceByClass(video:Type())
+				if service and service.TheaterType and not IsFlagSupported(self, service.TheaterType) then
+					return Finish("invalid_url")
+				end
+			end
+
+			for _, queued in pairs(self:GetQueue()) do
+				if queued:Type() == video:Type() and queued:Data() == video:Data() then
+					queued:AddExternalVote(identity, true)
+					return Finish("duplicate_voted")
+				end
+			end
+
+			if not success or isstring(success) then return Finish("request_failed") end
+			if hook.Run("TheaterValidateExternalVideoRequest", identity, self) ~= true then
+				return Finish("not_joined")
+			end
+			if self:IsReplicated() and video:Duration() >
+				GetConVar("cinema_video_duration_max"):GetInt() then
+				return Finish("duration_exceeded")
+			end
+			if hook.Run("PreVideoQueued", video, self) == false then return Finish("rejected") end
+
+			self:QueueVideo(video)
+			if self:NumPlayers() > 0 then
+				self:CheckVoteSkip()
+			end
+			self._Finished = false
+			hook.Run("PostVideoQueued", video, self)
+			Finish("ok")
+		end)
+	end
+
 	function THEATER:Seek( seconds )
 
 		if not IsVideoTimed(self:VideoType()) then return end
@@ -704,6 +797,20 @@ if SERVER then
 			end
 		end
 
+	end
+
+	function THEATER:VoteQueuedVideoByIdentity(identity, id, positive)
+		id = tonumber(id)
+		if not isstring(identity) or not id then return false, "invalid_vote" end
+		if GetQueueMode() ~= QUEUE_VOTEUPDOWN then return false, "voting_disabled" end
+
+		for _, vid in pairs(self._Queue) do
+			if vid.id == id then
+				return vid:AddExternalVote(identity, positive), "ok"
+			end
+		end
+
+		return false, "queue_item_missing"
 	end
 
 	function THEATER:RemoveQueuedVideo( ply, id )

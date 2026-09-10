@@ -8,11 +8,12 @@ function GM:PreVideoQueued( Video, Theater )
 
 	local ply = Video:GetOwner()
 
-	-- This shouldn't happen, but we'll check just in case
-	if not IsValid(ply) then return false end
+	-- External requesters have no Player entity, but still receive the same
+	-- public-theater duration restrictions as ordinary players.
+	if not IsValid(ply) and not Video:IsExternalRequest() then return false end
 
 	-- Disregard filtering admin requests
-	if ply:IsAdmin() then return true end
+	if IsValid(ply) and ply:IsAdmin() then return true end
 
 	-- Public theaters should be slightly more managed
 	if Theater:IsReplicated() then
@@ -21,10 +22,12 @@ function GM:PreVideoQueued( Video, Theater )
 		local MaxDuration = GetConVar("cinema_video_duration_max"):GetInt()
 		if Video:Duration() > MaxDuration then
 
-			Theater:AnnounceToPlayer( ply, {
-				"Theater_PublicVideoLength",
-				MaxDuration
-			} )
+			if IsValid(ply) then
+				Theater:AnnounceToPlayer( ply, {
+					"Theater_PublicVideoLength",
+					MaxDuration
+				} )
+			end
 
 			return false
 

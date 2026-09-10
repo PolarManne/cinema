@@ -16,6 +16,145 @@ const services = [
 	{ name: 'Upload Video', icon: 'upload', url: 'https://files.madhammer.club', action: 'open', requiresCodec: true },
 ];
 
+const webRelayMode = window.location.hash === '#webrelay';
+const directMetadataExtensions = new Set([
+	'webm', 'mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'mp4', 'mov', 'mkv'
+]);
+let hlsLibraryPromise = null;
+
+function loadHlsLibrary() {
+	if (window.Hls) return Promise.resolve(window.Hls);
+	if (hlsLibraryPromise) return hlsLibraryPromise;
+	hlsLibraryPromise = new Promise((resolve, reject) => {
+		const script = document.createElement('script');
+		script.src = 'https://cdn.jsdelivr.net/npm/hls.js@1';
+		script.async = true;
+		script.onload = () => window.Hls ? resolve(window.Hls) : reject(new Error('HLS unavailable'));
+		script.onerror = () => reject(new Error('HLS unavailable'));
+		document.head.appendChild(script);
+	}).catch((error) => {
+		hlsLibraryPromise = null;
+		throw error;
+	});
+	return hlsLibraryPromise;
+}
+
+function extractYouTubeId(value) {
+	try {
+		const parsed = new URL(value);
+		if (/(^|\.)youtube\.com$/i.test(parsed.hostname)) {
+			const queryId = parsed.searchParams.get('v');
+			if (queryId && /^[A-Za-z0-9_-]{11}$/.test(queryId)) return queryId;
+			const match = parsed.pathname.match(/^\/(?:shorts|v|embed)\/([A-Za-z0-9_-]{11})(?:\/|$)/);
+			return match ? match[1] : null;
+		}
+		if (/^(?:www\.)?youtu\.be$/i.test(parsed.hostname)) {
+			const match = parsed.pathname.match(/^\/([A-Za-z0-9_-]{11})(?:\/|$)/);
+			return match ? match[1] : null;
+		}
+	} catch {}
+	return null;
+}
+
+function collectYouTubeMetadata(videoId) {
+	return new Promise((resolve) => {
+		const token = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+		const frame = document.createElement('iframe');
+		frame.setAttribute('aria-hidden', 'true');
+		frame.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;border:0';
+		let settled = false;
+		const finish = (metadata) => {
+			if (settled) return;
+			settled = true;
+			window.removeEventListener('message', receive);
+			frame.remove();
+			resolve(metadata);
+		};
+		const receive = (event) => {
+			if (event.origin !== window.location.origin || event.source !== frame.contentWindow ||
+				!event.data || event.data.v !== 1 || event.data.token !== token) return;
+			if (event.data.type === 'cinema_metadata') finish(event.data.value);
+			else if (event.data.type === 'cinema_metadata_error') finish(undefined);
+		};
+		window.addEventListener('message', receive);
+		frame.src = `../youtube_meta.html#relay=1&token=${encodeURIComponent(token)}&v=${encodeURIComponent(videoId)}`;
+		document.body.appendChild(frame);
+		setTimeout(() => finish(undefined), 10000);
+	});
+}
+
+function collectDirectMetadata(value, inspection) {
+	let parsed;
+	try {
+		parsed = new URL(value);
+	} catch {
+		return Promise.resolve(undefined);
+	}
+	const extension = parsed.pathname.split('.').pop().toLowerCase();
+	if (extension === 'm3u8') {
+		return loadHlsLibrary().then((Hls) => new Promise((resolve) => {
+			const media = document.createElement('video');
+			media.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none';
+			media.setAttribute('aria-hidden', 'true');
+			document.body.appendChild(media);
+			const hls = new Hls();
+			let settled = false;
+			const finish = (metadata) => {
+				if (settled) return;
+				settled = true;
+				hls.destroy();
+				media.remove();
+				resolve(metadata);
+			};
+			hls.on(Hls.Events.MANIFEST_PARSED, () => finish({ duration: 0, isLive: true }));
+			hls.on(Hls.Events.ERROR, (_event, data) => {
+				if (data && data.fatal) finish(undefined);
+			});
+			hls.loadSource(parsed.href);
+			hls.attachMedia(media);
+			setTimeout(() => finish(undefined), 10000);
+		})).catch(() => undefined);
+	}
+	if (!directMetadataExtensions.has(extension)) return Promise.resolve(undefined);
+	if (inspection && Number.isFinite(inspection.duration) && inspection.duration > 0) {
+		return Promise.resolve({ duration: Math.round(inspection.duration), isLive: false });
+	}
+
+	return new Promise((resolve) => {
+		const media = document.createElement('video');
+		media.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none';
+		media.setAttribute('aria-hidden', 'true');
+		document.body.appendChild(media);
+		let settled = false;
+		const finish = (metadata) => {
+			if (settled) return;
+			settled = true;
+			media.removeAttribute('src');
+			media.load();
+			media.remove();
+			resolve(metadata);
+		};
+		media.preload = 'metadata';
+		const inspectDuration = () => {
+			if (Number.isFinite(media.duration) && media.duration > 0) {
+				finish({ duration: Math.round(media.duration), isLive: false });
+			}
+		};
+		media.onloadedmetadata = inspectDuration;
+		media.ondurationchange = inspectDuration;
+		media.onerror = () => finish(undefined);
+		media.src = parsed.href;
+		media.load();
+		setTimeout(() => finish(undefined), 10000);
+	});
+}
+
+async function collectWebRelayMetadata(value, inspection) {
+	if (!webRelayMode) return undefined;
+	const youtubeId = extractYouTubeId(value);
+	return youtubeId ? collectYouTubeMetadata(youtubeId) : collectDirectMetadata(value, inspection);
+}
+
 // Codec support detection
 let hasCodecSupport = false;
 
@@ -100,6 +239,10 @@ function selectService(elem) {
 
 	const href = elem.dataset.href;
 	const action = elem.dataset.action;
+	if (webRelayMode) {
+		window.open(href, '_blank', 'noopener,noreferrer');
+		return;
+	}
 
 	if (action === 'open') {
 		openService(elem);
@@ -175,9 +318,9 @@ async function requestUrl() {
 	requestInProgress = true;
 	submitBtn.disabled = true;
 
+	let inspection = null;
 	if (window.MediaCodecChecker.shouldInspectUrl(url)) {
 		setRequestStatus('Inspecting container and codecs...', true);
-		let inspection = null;
 		try {
 			inspection = await window.MediaCodecChecker.inspectUrl(url);
 		} catch (error) {
@@ -221,6 +364,12 @@ async function requestUrl() {
 		}
 	}
 
+	let metadata;
+	if (webRelayMode) {
+		setRequestStatus('Collecting video information...', true);
+		metadata = await collectWebRelayMetadata(url, inspection);
+	}
+
 	setRequestStatus('Request sent!', true);
 
 	setTimeout(() => {
@@ -228,7 +377,14 @@ async function requestUrl() {
 		finishRequest();
 	}, 2000);
 
-	if (typeof gmod !== 'undefined' && gmod.requestUrl) {
+	if (webRelayMode && window.parent !== window) {
+		window.parent.postMessage({
+			v: 1,
+			type: 'cinema_request',
+			url: url,
+			...(metadata ? { metadata } : {})
+		}, '*');
+	} else if (typeof gmod !== 'undefined' && gmod.requestUrl) {
 		gmod.requestUrl(url);
 	}
 }

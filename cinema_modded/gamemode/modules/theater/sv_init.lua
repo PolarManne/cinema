@@ -64,13 +64,34 @@ hook.Add( "PlayerDisconnected", "TheaterDisconnected", PlayerLeave )
 local metadata_callback = {}
 function FetchVideoMedata( ply, service, callback )
 
-	if not IsValid(ply) then return end
+	if service and service.ConsumeExternalMetadata then
+		local metadata = service:ConsumeExternalMetadata()
+		if metadata then
+			callback(metadata)
+			return
+		end
+	end
+
+	if not IsValid(ply) and service and service.GetMetadataPlayer then
+		ply = service:GetMetadataPlayer()
+	end
+	if not IsValid(ply) then
+		if callback then callback({ err = "Theater_MetadataClientUnavailable" }) end
+		return
+	end
 
 	local type, data = service:Type(), service:Data()
 	local istable = (istable(data) and data.id and true or false)
 	local token = util.CRC( math.random(1, 9999999) .. (istable and data.id or data )) -- Generate a Access Token for callback
 
 	metadata_callback[token] = callback
+	timer.Simple(30, function()
+		if not metadata_callback[token] then return end
+
+		local pending = metadata_callback[token]
+		metadata_callback[token] = nil
+		pending({ err = "Theater_MetadataTimeout" })
+	end)
 
 	net.Start("TheaterMetadata")
 		net.WriteString(type) -- Service Type

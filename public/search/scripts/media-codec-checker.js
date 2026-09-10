@@ -1,7 +1,7 @@
 'use strict';
 
 (function() {
-	const SUPPORTED_VIDEO_CODECS = new Set(['H.264', 'VP8', 'VP9', 'AV1']);
+	const SUPPORTED_VIDEO_CODECS = new Set(['AVC / H.264', 'VP8', 'VP9', 'AV1']);
 	const SUPPORTED_AUDIO_CODECS = new Set(['AAC', 'Vorbis', 'Opus', 'WAV', 'FLAC', 'MPEG-2', 'MP3']);
 	const INSPECTED_MEDIA_EXTENSIONS = new Set(['mp4', 'mkv', 'webm', 'ogg', 'mov']);
 	const MATROSKA_SUPPORTED_CODEC_IDS = new Set([
@@ -210,16 +210,18 @@
 		return { type, codec, supported };
 	}
 
-	function result(container, tracks) {
+	function result(container, tracks, duration) {
 		const supportedTracks = tracks.filter(item => item.supported);
 		const unsupportedTracks = tracks.filter(item => !item.supported);
-		return {
+		const output = {
 			container,
 			tracks,
 			supportedTracks,
 			unsupportedTracks,
 			allowed: supportedTracks.length > 0
 		};
+		if (Number.isFinite(duration) && duration > 0) output.duration = duration;
+		return output;
 	}
 
 	function mp4Codec(type, sampleEntry) {
@@ -268,6 +270,18 @@
 	function parseMp4Tracks(moovData, container) {
 		const root = { start: uint32(moovData, 0) === 1 ? 16 : 8, end: moovData.length };
 		const tracks = [];
+		let duration = null;
+		const mvhd = firstChild(moovData, root, 'mvhd');
+		if (mvhd) {
+			const version = moovData[mvhd.start];
+			const timescaleOffset = mvhd.start + (version === 1 ? 20 : 12);
+			const durationOffset = mvhd.start + (version === 1 ? 24 : 16);
+			if (durationOffset + (version === 1 ? 8 : 4) <= mvhd.end) {
+				const timescale = uint32(moovData, timescaleOffset);
+				const units = version === 1 ? uint64(moovData, durationOffset) : uint32(moovData, durationOffset);
+				if (timescale > 0 && Number.isSafeInteger(units)) duration = units / timescale;
+			}
+		}
 		for (const trak of findChildBoxes(moovData, root.start, root.end, 'trak')) {
 			const mdia = firstChild(moovData, trak, 'mdia');
 			if (!mdia) continue;
@@ -295,7 +309,7 @@
 			}
 			if (parsedEntries === 0) tracks.push(track(type, 'Unknown'));
 		}
-		return result(container, tracks);
+		return result(container, tracks, duration);
 	}
 
 	async function inspectMp4(reader, firstBytes, extension) {

@@ -129,6 +129,17 @@ local function BuildThumbnailURL(baseURL, itemId, apiKey, itemData)
 		"&api_key=" .. EncodeQueryValue(apiKey)
 end
 
+local function GetRuntimeSeconds(itemData)
+	local ticks = tonumber(itemData and itemData.RunTimeTicks)
+	if not ticks and istable(itemData and itemData.MediaSources) then
+		for _, source in ipairs(itemData.MediaSources) do
+			ticks = tonumber(source.RunTimeTicks)
+			if ticks then break end
+		end
+	end
+	return ticks and ticks > 0 and ticks / 10000000 or nil
+end
+
 function SERVICE:Match(url)
 	local params = (url.fragment and url.fragment["params"] )
 
@@ -454,7 +465,11 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 				title = jsonData.SeriesName .. " - " .. title
 			end
 			
-			theater.FetchVideoMedata(data:GetOwner(), data, function(metadata)
+			local function finish(metadata)
+				if metadata.err then
+					return onFailure(metadata.err)
+				end
+
 				local info = {
 					title = title,
 					duration = math.max(0, math.Round(tonumber(metadata.duration) or 0))
@@ -464,7 +479,14 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 					info.thumbnail = thumbnail
 				end
 				if onSuccess then pcall(onSuccess, info) end
-			end)
+			end
+
+			local runtime = GetRuntimeSeconds(jsonData)
+			if runtime then
+				finish({ duration = runtime })
+			else
+				theater.FetchVideoMedata(data:GetOwner(), data, finish)
+			end
 		end,
 		failed = function(err)
 			onFailure("API request failed: " .. tostring(err))
