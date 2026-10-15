@@ -554,6 +554,7 @@ function VIDEOVOTE:PerformLayout()
 	if IsValid(self.RemoveBtn) then
 		self.Votes:CenterVertical()
 		self.Votes:MoveRightOf(self.VoteUp, 2)
+	end
 
 	if IsValid(self.VoteDown) and self.VoteDown:IsVisible() then
 		self.VoteDown:CenterVertical()

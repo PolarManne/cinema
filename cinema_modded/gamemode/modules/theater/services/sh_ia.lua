@@ -498,7 +498,7 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 		local info = {
 			title = GenerateTitle(response, bestMatch, identifier),
 			duration = math.Round(duration),
-			thumbnail = GetThumbnail(response.files, bestMatch.name)
+			thumbnail = GetThumbnail(response.files, bestMatch.name),
 			data = identifier .. "," .. EncodeArchivePath(bestMatch.name)
 		}
 
