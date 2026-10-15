@@ -65,7 +65,7 @@ end
 
 function QUEUE:Init()
 	self:SetZPos(1)
-	self:SetSize(256, 512)
+	self:SetSize(320, 512)
 	self:SetPos(8, ScrH() / 2 - (self:GetTall() / 2))
 
 	self.Title = Label(translations:Format("Queue_Title"), self)
@@ -438,7 +438,6 @@ function VIDEOVOTE:AddRemoveButton()
 end
 
 function VIDEOVOTE:AddPriorityButton()
-
 	if IsValid(self.PriorityBtn) then return end
 
 	self.PriorityBtn = vgui.Create( "DImageButton", self )
@@ -457,7 +456,6 @@ function VIDEOVOTE:AddPriorityButton()
 			self.PriorityBtn:SetColor( Color(255,255,255) )
 		end
 	end
-
 end
 
 function VIDEOVOTE:Vote( up )
@@ -508,20 +506,21 @@ function VIDEOVOTE:Update()
 	local canRemove = self.Video.Owner or isAdmin or isTheaterOwner
 	local canPrioritize = isTheaterOwner or GetPriorityPurchasePrice(self.Video) > 0 or HasOwnedPriority(self.Video)
 
-	if canRemove then
+	if canRemove and canPrioritize then
+		self:AddPriorityButton()
 		self:AddRemoveButton()
+		self:SetWide(allowDown and 92 or 74)
+	elseif canRemove or canPrioritize then
+		if canRemove then
+			self:AddRemoveButton()
+		elseif canPrioritize then
+			self:AddPriorityButton()
+		end
 		self:SetWide(allowDown and 72 or 54)
 	else
 		if IsValid(self.RemoveBtn) then
 			self.RemoveBtn:SetVisible(false)
 		end
-		self:SetWide(allowDown and 52 or 34)
-	end
-
-	if canPrioritize then
-		self:AddPriorityButton()
-		self:SetWide(allowDown and 72 or 54)
-	else
 		if IsValid(self.PriorityBtn) then
 			self.PriorityBtn:SetVisible(false)
 		end
@@ -540,21 +539,8 @@ function VIDEOVOTE:PerformLayout()
 	self.VoteUp:CenterVertical()
 	self.VoteUp:AlignLeft(0)
 
-	self.VoteUp:Center()
-	self.VoteUp:AlignLeft()
-
 	self.Votes:Center()
-	self.Votes:MoveRightOf( self.VoteUp, 5 )
-
-	if IsValid(self.PriorityBtn) then
-		self.PriorityBtn:CenterVertical()
-		self.PriorityBtn:MoveRightOf( self.Votes, 5 )
-	end
-
-	if IsValid(self.RemoveBtn) then
-		self.Votes:CenterVertical()
-		self.Votes:MoveRightOf(self.VoteUp, 2)
-	end
+	self.Votes:MoveRightOf( self.VoteUp, 2 )
 
 	if IsValid(self.VoteDown) and self.VoteDown:IsVisible() then
 		self.VoteDown:CenterVertical()
@@ -564,6 +550,16 @@ function VIDEOVOTE:PerformLayout()
 	if IsValid(self.RemoveBtn) and self.RemoveBtn:IsVisible() then
 		self.RemoveBtn:CenterVertical()
 		self.RemoveBtn:AlignRight(0)
+	end
+
+	if IsValid(self.PriorityBtn) and self.PriorityBtn:IsVisible() then
+		if IsValid(self.VoteDown) and self.VoteDown:IsVisible() then
+			self.PriorityBtn:CenterVertical()
+			self.PriorityBtn:MoveRightOf(self.VoteDown, 2)
+		else
+			self.PriorityBtn:CenterVertical()
+			self.PriorityBtn:MoveRightOf(self.Votes, 2)
+		end
 	end
 end
 
