@@ -13,7 +13,9 @@ local SERVICE = {
 local META_URL = "https://www.bilibili.com/video/%s"
 
 function SERVICE:Match(url)
-    local av = url.host:match("www.bilibili.com") and string.match(url.path, "av[%w*]+")
+    local host = url.host or ""
+    local path = url.path or ""
+    local av = host:match("www.bilibili.com") and string.match(path, "av[%w*]+")
     return av or false
 end
 
@@ -53,7 +55,12 @@ function SERVICE:GetURLInfo(url)
         p = 1
     end
 
-    if url.host:match("www.bilibili.com") or url.host:match("b23.tv") then info.Data = string.match(url.path, "av[%w*]+") .. " " .. p end
+    local host = url.host or ""
+    local path = url.path or ""
+    if host:match("www.bilibili.com") or host:match("b23.tv") then
+        local av = string.match(path, "av[%w*]+")
+        if av then info.Data = av .. " " .. p end
+    end
     return info.Data and info or false
 end
 
@@ -65,9 +72,10 @@ function SERVICE:GetVideoInfo(d, onSuccess, onFailure)
         http.Fetch(f, function(r, s)
             if s == 0 then return onFailure("Theater_RequestFailed") end
             local rT = util.JSONToTable(r)
-            local data = rT.data
+            local data = rT and rT.data
+            if data == nil or not data.pages then return onFailure("Theater_RequestFailed") end
             local pdata = data.pages[tonumber(sT[2])] or data.pages[1]
-            if data == nil then return onFailure("Theater_RequestFailed") end
+            if pdata == nil then return onFailure("Theater_RequestFailed") end
             local info = {}
             info.title = data.title .. " (" .. sT[2] .. "p)"
             info.duration = pdata.duration + 1
