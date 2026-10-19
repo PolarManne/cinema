@@ -74,6 +74,54 @@ local function EncodeQueryValue(value)
 	return encoded
 end
 
+local function AddQueryParameter(url, name, value)
+	if url:find("[?&]" .. name .. "=", 1, false) then
+		return url
+	end
+
+	local separator = url:find("?", 1, true) and "&" or "?"
+	return url .. separator .. name .. "=" .. EncodeQueryValue(value)
+end
+
+local function BuildPlaybackURL(baseURL, playbackPath, apiKey, userId)
+	if not isstring(playbackPath) or playbackPath == "" then
+		return nil
+	end
+
+	if not playbackPath:match("^https?://") then
+		if playbackPath:sub(1, 1) ~= "/" then
+			playbackPath = "/" .. playbackPath
+		end
+		playbackPath = baseURL .. playbackPath
+	end
+
+	playbackPath = AddQueryParameter(playbackPath, "api_key", apiKey)
+	return AddQueryParameter(playbackPath, "userId", userId)
+end
+
+local function GetItemTitle(itemData, fallback)
+	if not istable(itemData) then
+		return fallback
+	end
+
+	local seriesName = itemData.SeriesName
+	local episodeTitle = itemData.EpisodeTitle or itemData.Name
+	if isstring(seriesName) and seriesName ~= "" and
+		isstring(episodeTitle) and episodeTitle ~= "" and episodeTitle ~= seriesName then
+		return seriesName .. " - " .. episodeTitle
+	end
+
+	if isstring(episodeTitle) and episodeTitle ~= "" then
+		return episodeTitle
+	end
+
+	if isstring(seriesName) and seriesName ~= "" then
+		return seriesName
+	end
+
+	return fallback
+end
+
 local function FirstImageTag(tags)
 	if not istable(tags) then
 		return nil
@@ -163,6 +211,8 @@ function SERVICE:GetURLInfo(url)
 
 		if IsTVHost(url.host) then
 			directURL = baseURL .. "/Videos/" .. itemId .. "/stream"
+			directURL = AddQueryParameter(directURL, "api_key", GetApiKeyForHost(url.host))
+			directURL = AddQueryParameter(directURL, "userId", GetUserIdForHost(url.host))
 		else
 			directURL = baseURL .. "/Videos/" .. itemId .. "/stream?static=true"
 		end
@@ -374,18 +424,16 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 
 				local mediaSources = jsonData.MediaSources
 				local mediaSource = istable(mediaSources) and mediaSources[1] or nil
-				local transcodingPath = mediaSource and mediaSource.TranscodingUrl
+				local playbackPath = mediaSource and
+					(mediaSource.TranscodingUrl or mediaSource.DirectStreamUrl)
 
-				if not isstring(transcodingPath) or transcodingPath == "" then
-					return onFailure("PlaybackInfo did not return TranscodingUrl")
+				if not isstring(playbackPath) or playbackPath == "" then
+					return onFailure("PlaybackInfo did not return a playable URL")
 				end
 
-				local liveURL = transcodingPath
-				if not transcodingPath:match("^https?://") then
-					if transcodingPath:sub(1, 1) ~= "/" then
-						transcodingPath = "/" .. transcodingPath
-					end
-					liveURL = baseURL .. transcodingPath
+				local playbackURL = BuildPlaybackURL(baseURL, playbackPath, apiKey, userId)
+				if not playbackURL then
+					return onFailure("PlaybackInfo returned an invalid playable URL")
 				end
 
 				HTTP({
@@ -404,17 +452,21 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 							return onFailure("Invalid item info JSON response")
 						end
 
-						local title = itemData.Name or "Madhammer TV"
-						if itemData.SeriesName then
-							title = itemData.SeriesName .. " - " .. title
-						end
+						local title = GetItemTitle(itemData, "Madhammer TV")
+						local isLive = itemData.Type == "LiveTv" or itemData.Type == "TvChannel" or
+							itemData.IsLive == true or itemData.LiveTvChannelId ~= nil
+						local mediaRuntimeTicks = tonumber(mediaSource and mediaSource.RunTimeTicks)
+						local runtime = GetRuntimeSeconds(itemData) or
+							(mediaRuntimeTicks and mediaRuntimeTicks / 10000000) or 0
 
 						local info = {
 							title = title,
-							type = "jellyfin_url_live",
-							duration = 0,
-							data = liveURL
+							duration = isLive and 0 or math.max(0, math.Round(runtime)),
+							data = playbackURL
 						}
+						if isLive then
+							info.type = "jellyfin_url_live"
+						end
 						local thumbnail = BuildThumbnailURL(baseURL, itemId, apiKey, itemData)
 						if thumbnail then
 							info.thumbnail = thumbnail
@@ -460,10 +512,7 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 				return onFailure("Invalid JSON response")
 			end
 			
-			local title = jsonData.Name or "Unknown"
-			if jsonData.SeriesName then
-				title = jsonData.SeriesName .. " - " .. title
-			end
+			local title = GetItemTitle(jsonData, "Unknown")
 			
 			local function finish(metadata)
 				if metadata.err then
