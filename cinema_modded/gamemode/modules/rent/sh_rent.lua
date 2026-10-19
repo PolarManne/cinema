@@ -5,8 +5,9 @@ module("rent", package.seeall)
 PendingRefunds = PendingRefunds or {}
 
 function QueuePendingRefund(steamID, amount)
-	if not steamID or amount <= 0 then return end
+	if not isstring(steamID) or steamID == "" or not isnumber(amount) or amount <= 0 then return false end
 	PendingRefunds[steamID] = (PendingRefunds[steamID] or 0) + amount
+	return true
 end
 
 function ApplyPendingRefund(ply)
@@ -16,9 +17,14 @@ function ApplyPendingRefund(ply)
 	local amount = PendingRefunds[sid]
 	if not amount or amount <= 0 then return end
 
+	if not rent.GiveMoney(ply, amount) then
+		ErrorNoHalt("[Rent] Could not apply pending refund; keeping it queued.\n")
+		return false
+	end
+
 	PendingRefunds[sid] = nil
-	rent.GiveMoney(ply, amount)
 	theater.SendAnnouncement(ply, { "Rent_RefundedPending", theater.Currency(amount) })
+	return true
 end
 
 function CanAfford(ply, cost)
@@ -50,12 +56,21 @@ end
 
 function GiveMoney(ply, value)
 	local provider = rent.GetProvider(ply)
-	if not provider then
-		ErrorNoHalt("[Rent] Warning: No currency provider available!\n")
+	if not provider or not isfunction(provider.Give) then
+		ErrorNoHalt("[Rent] Warning: No currency provider with refund support is available!\n")
 		return false
 	end
 
-	provider.Give(ply, value)
+	local ok, result, err = pcall(provider.Give, ply, value)
+	if not ok then
+		ErrorNoHalt("[Rent] Currency provider refund failed: " .. tostring(result) .. "\n")
+		return false
+	end
+	if result == false or err then
+		ErrorNoHalt("[Rent] Currency provider rejected the refund: " .. tostring(err or "unknown error") .. "\n")
+		return false
+	end
+
 	return true
 end
 

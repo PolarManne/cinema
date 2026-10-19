@@ -2,18 +2,32 @@ module( "theater", package.seeall )
 
 THEATER = {}
 
-local PRIORITY_POINTS_PER_SECOND = 2500
+local PRIORITY_CURRENCY_PER_SECOND = 2500
 
-function IsPriorityPurchaseAvailable()
-	if not istable(Vanpoints) then
-		return false
-	end
+function GetPriorityProvider(ply)
+	if not rent or not isfunction(rent.GetProvider) then return nil end
+	local provider = rent.GetProvider(ply)
+	if not provider or not provider.CanAfford or not provider.Take then return nil end
+	return provider
+end
 
-	if SERVER then
-		return isfunction(Vanpoints.Get) and isfunction(Vanpoints.Take)
-	end
+function IsPriorityPurchaseAvailable(ply)
+	if CLIENT and not IsValid(ply) then ply = LocalPlayer() end
+	if not IsValid(ply) then return false end
+	return GetPriorityProvider(ply) ~= nil
+end
 
-	return isfunction(Vanpoints.Get)
+function IsPriorityPurchaseAvailableForSteamID64(steamID64)
+	if not rent or not isfunction(rent.GetProviderForSteamID64) then return false end
+	local provider = rent.GetProviderForSteamID64(steamID64)
+	return provider ~= nil and provider.CanAffordSteamID64 ~= nil and provider.TakeSteamID64 ~= nil
+end
+
+function GetPriorityBalanceSteamID64(steamID64)
+	if not rent or not isfunction(rent.GetProviderForSteamID64) then return nil end
+	local provider = rent.GetProviderForSteamID64(steamID64)
+	if not provider or not provider.GetBalanceSteamID64 then return nil end
+	return provider.GetBalanceSteamID64(steamID64)
 end
 
 function GetPriorityPrice(duration)
@@ -22,7 +36,7 @@ function GetPriorityPrice(duration)
 		return 0
 	end
 
-	return seconds * PRIORITY_POINTS_PER_SECOND
+	return seconds * PRIORITY_CURRENCY_PER_SECOND
 end
 
 function THEATER:Init( locId, info )
@@ -884,7 +898,7 @@ if SERVER then
 					break
 				end
 
-				if not IsPriorityPurchaseAvailable() then
+				if not IsPriorityPurchaseAvailable(ply) then
 					if SERVER then
 						ply:ChatPrint("Priority purchasing is currently disabled.")
 					end
@@ -899,10 +913,21 @@ if SERVER then
 					break
 				end
 
-				local purchased, reason = hook.Run("TheaterPurchaseVideoPriority", ply, self, vid, price)
-				if purchased ~= true then
+				local provider = GetPriorityProvider(ply)
+				if not provider then
+					ply:ChatPrint("Priority purchasing is currently unavailable.")
+					break
+				end
+
+				if not provider.CanAfford(ply, price) then
+					ply:ChatPrint("You do not have enough currency to purchase priority.")
+					break
+				end
+
+				local purchased, reason = provider.Take(ply, price)
+				if purchased == false or reason then
 					if SERVER then
-						ply:ChatPrint(isstring(reason) and reason or "Priority purchasing is currently unavailable.")
+						ply:ChatPrint("Unable to process the priority purchase.")
 					end
 					break
 				end
@@ -925,16 +950,26 @@ if SERVER then
 			if vid.id == id then
 				if not vid:IsOwnerSteamID64(steamId) then return false, "not_owner" end
 				if vid:IsPriority() then return false, "already_priority" end
-				if not IsPriorityPurchaseAvailable() then return false, "purchase_unavailable" end
+				if not IsPriorityPurchaseAvailableForSteamID64(steamId) then
+					return false, "purchase_unavailable"
+				end
 
 				local price = GetPriorityPrice(vid:Duration())
 				if price <= 0 then return false, "live_video" end
 
-				local purchased, reason = hook.Run(
-					"TheaterPurchaseVideoPriorityBySteamID64", steamId, self, vid, price)
-				if purchased ~= true then
+				local provider = rent and rent.GetProviderForSteamID64 and
+					rent.GetProviderForSteamID64(steamId)
+				if not provider or not provider.CanAffordSteamID64 or not provider.TakeSteamID64 then
+					return false, "purchase_unavailable"
+				end
+				if not provider.CanAffordSteamID64(steamId, price) then
+					return false, "insufficient_currency"
+				end
+
+				local purchased, reason = provider.TakeSteamID64(steamId, price)
+				if purchased == false or reason then
 					local resultCodes = {
-						insufficient_points = true,
+						insufficient_currency = true,
 						purchase_failed = true,
 						purchase_unavailable = true
 					}

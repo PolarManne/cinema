@@ -18,7 +18,7 @@ local function GetPriorityPurchasePrice(video)
 		return 0
 	end
 
-	if not theater.IsPriorityPurchaseAvailable or not theater.IsPriorityPurchaseAvailable() then
+	if not theater.IsPriorityPurchaseAvailable or not theater.IsPriorityPurchaseAvailable(LocalPlayer()) then
 		return 0
 	end
 
@@ -45,7 +45,7 @@ local function RequestPriority(video)
 		return
 	end
 
-	if not theater.IsPriorityPurchaseAvailable or not theater.IsPriorityPurchaseAvailable() then
+	if not theater.IsPriorityPurchaseAvailable or not theater.IsPriorityPurchaseAvailable(ply) then
 		return
 	end
 
@@ -53,7 +53,7 @@ local function RequestPriority(video)
 	if price <= 0 then return end
 
 	Derma_Query(
-		string.format("Mark this video as priority for %d₪?", price),
+		string.format("Mark this video as priority for %s?", rent.FormatCost(price, ply)),
 		"Purchase Priority",
 		"Buy",
 		function()

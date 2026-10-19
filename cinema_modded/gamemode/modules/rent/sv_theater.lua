@@ -16,6 +16,20 @@ local function initialize()
 		local ownerSteamID = thtr._OwnerSteamID
 		local ownerNick = thtr._OwnerNick
 
+		if IsValid(refundPly) then
+			if not rent.GiveMoney(refundPly, value) then
+				return false, 0, 0, ownerSteamID, ownerNick
+			end
+		elseif ownerSteamID then
+			-- Owner is offline: queue refund for reconnect before releasing the theater.
+			if not rent.QueuePendingRefund(ownerSteamID, value) then
+				return false, 0, 0, ownerSteamID, ownerNick
+			end
+		else
+			ErrorNoHalt("[Rent] Could not refund rent without an owner identity.\n")
+			return false, 0, 0, ownerSteamID, ownerNick
+		end
+
 		thtr._rentExpiration = nil
 		thtr._rentLength = nil
 		thtr._rentalTime = nil
@@ -23,18 +37,14 @@ local function initialize()
 
 		if IsValid(refundPly) then
 			refundPly._rentedTheater = nil
-			rent.GiveMoney(refundPly, value)
 			theater.RequestTheaterInfo(refundPly)
-		elseif ownerSteamID then
-			-- Owner is offline: queue refund for reconnect
-			rent.QueuePendingRefund(ownerSteamID, value)
 		end
 
 		timer.Remove("RentExpiration_" .. thtr:GetLocation())
 
 		rent.SendRentInfo(thtr)
 
-		return minutes, value, ownerSteamID, ownerNick
+		return true, minutes, value, ownerSteamID, ownerNick
 	end
 
 	function theater.THEATER:IsRented()
@@ -182,10 +192,13 @@ local function initialize()
 		elseif self:GetRemainingRentTime() < 1 then
 			self:AnnounceToPlayer(ply, { "Rent_RefundNotEnoughTime" })
 		else
-			local minutes, value = performRefund(self, ply)
-
-			self:AnnounceToPlayers({ "Rent_HasRefunded", ply:Nick() })
-			self:AnnounceToPlayer(ply, { "Rent_Refunded", theater.Currency(value), minutes })
+			local refunded, minutes, value = performRefund(self, ply)
+			if refunded then
+				self:AnnounceToPlayers({ "Rent_HasRefunded", ply:Nick() })
+				self:AnnounceToPlayer(ply, { "Rent_Refunded", theater.Currency(value), minutes })
+			else
+				self:AnnounceToPlayer(ply, { "Rent_NoCurrency" })
+			end
 		end
 	end
 
@@ -198,9 +211,11 @@ local function initialize()
 		else
 			local owner = self:GetOwner()
 			local ownerNick = self:GetOwnerNick() or "?"
-			local minutes, value, ownerSteamID = performRefund(self, owner)
+			local refunded, minutes, value, ownerSteamID = performRefund(self, owner)
 
-			if IsValid(owner) then
+			if not refunded then
+				self:AnnounceToPlayer(admin, { "Rent_NoCurrency" })
+			elseif IsValid(owner) then
 				self:AnnounceToPlayers({ "Rent_CancelledPublic", ownerNick })
 				self:AnnounceToPlayer(owner, { "Rent_CancelledOwner", theater.Currency(value), minutes })
 				self:AnnounceToPlayer(admin, { "Rent_CancelledAdmin", ownerNick })
