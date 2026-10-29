@@ -1018,7 +1018,7 @@ if SERVER then
 		if ratio < 0 then
 			return -1
 		end
-		local externalPlayers = tonumber(hook.Run("TheaterGetExternalPlayerCount", self)) or 0
+		local externalPlayers = tonumber(hook.Run("TheaterGetExternalPlayerCount", self) or 0) or 0
 		local numply = self:NumPlayers() + math.max(0, math.floor(externalPlayers))
 		if numply == 1 then
 			return 1
