@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>Cinema — Find media</title>
+  <title>Cinema</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet" href="./styles/search.css">
 </head>
@@ -18,13 +18,13 @@
         <div class="input-wrap">
           <i class="fa-solid fa-link" aria-hidden="true"></i>
           <input id="urlinput" type="url" autocomplete="off" spellcheck="false"
-                 placeholder="https://youtube.com/watch?v=..." aria-label="Media URL">
+                 placeholder="Paste a video URL here..." aria-label="Media URL">
           <button id="clear-btn" class="icon-btn hidden" type="button" aria-label="Clear URL">
             <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>
         </div>
         <button id="submit-btn" class="request-btn" type="button">
-          Request media
+          Request
           <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
         </button>
       </div>
@@ -56,30 +56,6 @@
       <p id="empty-state" class="empty-state hidden">No service matches your search.</p>
     </section>
   </main>
-
-  <div id="codec-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="codec-title">
-    <button class="modal-backdrop" data-action="close-codec" aria-label="Close dialog"></button>
-    <div class="modal-card">
-      <button class="modal-close" data-action="close-codec" aria-label="Close dialog">
-        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-      </button>
-      <div class="modal-icon"><i class="fa-solid fa-video" aria-hidden="true"></i></div>
-      <span class="section-kicker">CODEC REQUIRED</span>
-      <h2 id="codec-title">GModPatchTool is required</h2>
-      <p><strong id="service-name-popup"></strong> <span>needs the H.264 codec support provided by GModPatchTool.</span></p>
-      <ol>
-        <li>Install/apply GModPatchTool.</li>
-        <li>Restart Garry's Mod completely.</li>
-        <li>Return here and try the service again.</li>
-      </ol>
-      <div class="modal-actions">
-        <button class="btn-secondary" data-action="close-codec" type="button">Not now</button>
-        <button class="btn-primary" data-action="codec-instructions" type="button">
-          Get GModPatchTool <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
-        </button>
-      </div>
-    </div>
-  </div>
 
   <div id="support-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="support-title">
     <button class="modal-backdrop" data-action="close-support" aria-label="Close supported formats"></button>
