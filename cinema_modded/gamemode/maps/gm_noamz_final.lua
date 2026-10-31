@@ -1,12 +1,12 @@
 Location.Add( "gm_noamz_final",
 {
-	["place with light"] =
+	["Shed"] =
 	{
 		Volumes = {
 			{ Min = Vector(-767, 704, 16), Max = Vector(-280, 1843, 747) },
 		},
 		Theater = {
-			Name = "place with light",
+			Name = "Shed",
 			Flags = THEATER_REPLICATED,
 			Pos = Vector(-284, 704.25, 227),
 			Ang = Angle(0, 180, 0),
@@ -14,13 +14,13 @@ Location.Add( "gm_noamz_final",
 			Height = 149,
 		}
 	},
-	["place next to that"] =
+	["Square"] =
 	{
 		Volumes = {
 			{ Min = Vector(-279, 704, 16), Max = Vector(255, 1343, 747) },
 		},
 		Theater = {
-			Name = "place next to that",
+			Name = "Square",
 			Flags = THEATER_REPLICATED,
 			Pos = Vector(255.75, 1216, 272),
 			Ang = Angle(0, -90, 0),
@@ -28,13 +28,13 @@ Location.Add( "gm_noamz_final",
 			Height = 151,
 		}
 	},
-	["hallway with loading zone"] =
+	["Loading Dock"] =
 	{
 		Volumes = {
 			{ Min = Vector(192, -384, 16), Max = Vector(1024, 0, 272) },
 		},
 		Theater = {
-			Name = "place with light",
+			Name = "Loading Dock",
 			Flags = THEATER_REPLICATED,
 			Pos = Vector(448, -104.25, 144),
 			Ang = Angle(0, 0, 0),
@@ -42,13 +42,13 @@ Location.Add( "gm_noamz_final",
 			Height = 128,
 		}
 	},
-	["area with curved wall"] =
+	["Courtyard"] =
 	{
 		Volumes = {
 			{ Min = Vector(-216, 1408, 16), Max = Vector(256, 1842, 747) },
 		},
 		Theater = {
-			Name = "area with curved wall",
+			Name = "Courtyard",
 			Flags = THEATER_REPLICATED,
 			Pos = Vector(256, 1408.25, 272),
 			Ang = Angle(0, 180, 0),
