@@ -504,7 +504,7 @@ function VIDEOVOTE:Update()
 	local isAdmin = LocalPlayer():IsAdmin()
 	local isTheaterOwner = (Theater and Theater:IsPrivate() and Theater:GetOwner() == LocalPlayer())
 	local canRemove = self.Video.Owner or isAdmin or isTheaterOwner
-	local canPrioritize = isTheaterOwner or GetPriorityPurchasePrice(self.Video) > 0 or HasOwnedPriority(self.Video)
+	local canPrioritize = isAdmin or isTheaterOwner or GetPriorityPurchasePrice(self.Video) > 0 or HasOwnedPriority(self.Video)
 
 	if canRemove and canPrioritize then
 		self:AddPriorityButton()
