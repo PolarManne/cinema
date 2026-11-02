@@ -54,7 +54,7 @@ function PLAYER:Spawn()
 
 		local col = self.Player:GetInfo( "cl_playercolor" )
 		self.Player:SetPlayerColor( Vector( col ) )
-		self.Player:SetCollisionGroup( COLLISION_GROUP_DEBRIS_TRIGGER )
+		self.Player:SetCollisionGroup( COLLISION_GROUP_PLAYER )
 		self.Player:ClearPoseParameters()
 
 		local wepclr = Vector( self.Player:GetInfo( "cl_weaponcolor" ) )
