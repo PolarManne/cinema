@@ -85,7 +85,7 @@ end
 
 local function BuildRawPlayerURL(videoURL)
 	return theater.GetCinemaURL("raw-player.html") ..
-		"?video=" .. EncodeQueryValue(videoURL) .. "&proxy=1"
+		"?video=" .. EncodeQueryValue(videoURL)
 end
 
 local function BuildPlaybackURL(baseURL, playbackPath, apiKey, userId)
