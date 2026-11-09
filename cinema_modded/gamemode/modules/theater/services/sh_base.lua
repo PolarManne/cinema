@@ -271,7 +271,7 @@ if CLIENT then
 				}
 
 				seek(second) {
-					if (!!this.player && !!this.player.currentTime) {
+					if (!!this.player && typeof this.player.currentTime === "number") {
 						this.player.currentTime = second;
 					}
 				}
@@ -292,7 +292,8 @@ if CLIENT then
 
 				sync(time) {
 					if (this._syncPaused) return; // don't scrub a paused player
-					if (!!this.player && !!this.player.currentTime && !!time) {
+					if (!!this.player && typeof this.player.currentTime === "number" &&
+						typeof time === "number") {
 
 						var current = this.player.currentTime;
 						if ((current !== null) &&

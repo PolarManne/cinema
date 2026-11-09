@@ -1,0 +1,439 @@
+<!--
+  Cinema (Fixed Edition)
+  Copyright (C) 2013-2026 Cinema authors
+
+  This file is part of Cinema (Fixed Edition), licensed under the GNU GPL v3.
+  See ../LICENSE.md for the full license text.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Cinema raw player</title>
+	<style>
+		* { box-sizing: border-box; }
+		html, body { width: 100%; height: 100%; margin: 0; background: #000; overflow: hidden; }
+		#stage { position: relative; width: 100%; height: 100%; }
+		movi-player { display: block; width: 100%; height: 100%; }
+	</style>
+</head>
+<body>
+	<div id="stage">
+		<movi-player id="cinema-player" controls autoplay playsinline stablevolume wasmurl="movi-player/movi.wasm"></movi-player>
+	</div>
+	<script src="movi-player/element.global.js"></script>
+	<script>
+		(function () {
+			"use strict";
+
+			const query = new URLSearchParams(window.location.search);
+			const player = document.getElementById("cinema-player");
+			const videoURL = query.get("video");
+			const metadataOnly = query.get("metadata") === "1";
+			const debugSSA = query.get("debug") === "1";
+			let readySent = false;
+			let metadataSent = false;
+			let metadataFallbackTimer = null;
+			const isHLS = /\.m3u8(?:[?#]|$)/i.test(videoURL || "");
+
+			function ssaLog(message, details) {
+				if (!debugSSA) return;
+				if (details === undefined) {
+					console.log("[Cinema SSA] " + message);
+				} else {
+					console.log("[Cinema SSA] " + message, details);
+				}
+			}
+
+			function ssaError(message, error) {
+				console.error("[Cinema SSA] " + message, error || "");
+			}
+
+			if (metadataOnly) {
+				player.removeAttribute("controls");
+				player.removeAttribute("autoplay");
+			}
+
+			function reportMetadata(allowLiveFallback) {
+				if (metadataSent) return;
+				let duration = Number(player.duration);
+				if (!(Number.isFinite(duration) && duration > 0) &&
+					player.player && typeof player.player.getDuration === "function") {
+					duration = Number(player.player.getDuration());
+				}
+				const live = !Number.isFinite(duration) || duration <= 0;
+				if (!isHLS && live) return;
+				if (isHLS && live && !allowLiveFallback) {
+					if (!metadataFallbackTimer) {
+						metadataFallbackTimer = window.setTimeout(function () {
+							metadataFallbackTimer = null;
+							reportMetadata(true);
+						}, 1500);
+					}
+					return;
+				}
+				if (!Number.isFinite(duration) || duration < 0) {
+					if (!isHLS || player.readyState < 1) return;
+					duration = 0;
+				}
+				metadataSent = true;
+
+				console.log("METADATA:" + JSON.stringify({
+					duration: duration,
+					videoWidth: Number(player.videoWidth) || 0,
+					videoHeight: Number(player.videoHeight) || 0,
+					live: live
+				}));
+			}
+
+			function reportReady() {
+				if (readySent || metadataOnly) return;
+				if (!Number.isFinite(Number(player.duration))) return;
+
+				readySent = true;
+				window.cinema_controller = player;
+				if (window.exTheater) exTheater.controllerReady();
+			}
+
+			player.addEventListener("loadedmetadata", function () {
+				ssaLog("loadedmetadata", {
+					duration: Number(player.duration),
+					videoWidth: Number(player.videoWidth),
+					videoHeight: Number(player.videoHeight)
+				});
+				reportMetadata();
+				reportReady();
+			});
+			player.addEventListener("loadeddata", function () {
+				ssaLog("loadeddata");
+				reportMetadata(true);
+				selectEmbeddedSSAWhenAvailable();
+			});
+			player.addEventListener("trackschange", function () {
+				ssaLog("trackschange");
+				selectEmbeddedSSAWhenAvailable();
+			});
+			player.addEventListener("durationchange", reportMetadata);
+			player.addEventListener("error", function () {
+				console.error("Raw player error");
+			});
+
+			class EmbeddedSSARenderer {
+				constructor() {
+					this.container = null;
+					this.renderer = null;
+					this.canvas = null;
+					this.jassub = null;
+					this.module = null;
+					this.pendingPackets = [];
+					this.packetChain = Promise.resolve();
+					this.packetCount = 0;
+					this.renderCount = 0;
+					this.configureKey = "";
+					this.configurePromise = null;
+					this.visibilityObserver = null;
+					this.pixelAspectRatio = 1;
+				}
+
+				getVideoPixelAspectRatio() {
+					const tracks = player.player &&
+						player.player.getMediaInfo &&
+						player.player.getMediaInfo().tracks;
+					const videoTrack = Array.isArray(tracks) &&
+						tracks.find((track) => track.type === "video");
+					return videoTrack &&
+						Number.isFinite(videoTrack.pixelAspectRatio) &&
+						videoTrack.pixelAspectRatio > 0
+						? videoTrack.pixelAspectRatio
+						: 1;
+				}
+
+				mount(container) {
+					this.container = container;
+					const ensureVisible = () => {
+						if (container.style.getPropertyValue("display") !== "block" ||
+							container.style.getPropertyPriority("display") !== "important") {
+							container.style.setProperty("display", "block", "important");
+						}
+						if (container.getAttribute("aria-hidden") !== "false") {
+							container.setAttribute("aria-hidden", "false");
+						}
+					};
+					ensureVisible();
+					if (this.visibilityObserver) this.visibilityObserver.disconnect();
+					this.visibilityObserver = new MutationObserver(ensureVisible);
+					this.visibilityObserver.observe(container, {
+						attributes: true,
+						attributeFilter: ["aria-hidden", "style"]
+					});
+					container.style.position = "absolute";
+					container.style.inset = "0";
+					container.style.width = "100%";
+					container.style.height = "100%";
+					container.style.padding = "0";
+					container.style.zIndex = "5";
+					container.style.overflow = "hidden";
+					ssaLog("renderer mounted", {
+						container: container,
+						width: container.clientWidth,
+						height: container.clientHeight
+					});
+					if (this.canvas) this.container.appendChild(this.canvas);
+				}
+
+				async configure(track, extradata, fonts) {
+					this.pixelAspectRatio = this.getVideoPixelAspectRatio();
+					ssaLog("configure called", {
+						id: track.id,
+						codec: track.codec,
+						subtitleType: track.subtitleType,
+						extradataBytes: extradata ? extradata.length : 0,
+						fontCount: fonts ? fonts.length : 0,
+						pixelAspectRatio: this.pixelAspectRatio
+					});
+					if (track.subtitleType === "image" ||
+						!/^(ass|ssa)$/i.test((track.codec || "").trim())) {
+						ssaLog("configure skipped: unsupported track");
+						return;
+					}
+
+					const subtitleScript = new TextDecoder().decode(
+						extradata || new Uint8Array()
+					).replace(/\0/g, "").replace(/^\uFEFF/, "");
+					const configureKey = track.id + ":" + subtitleScript;
+					if (this.renderer && this.configureKey === configureKey) {
+						return;
+					}
+					if (this.configurePromise && this.configureKey === configureKey) {
+						return this.configurePromise;
+					}
+					this.configureKey = configureKey;
+					this.configurePromise = this.configureInternal(
+						subtitleScript,
+						fonts || []
+					).catch(function (error) {
+						ssaError("JASSUB configuration failed", error);
+					}).finally(() => {
+						this.configurePromise = null;
+					});
+					return this.configurePromise;
+				}
+
+				async configureInternal(subtitleScript, fonts) {
+					if (!subtitleScript.trim()) {
+						throw new Error("ASS/SSA track has no script header");
+					}
+					if (this.jassub) await this.jassub.destroy();
+					this.renderer = null;
+					this.canvas = document.createElement("canvas");
+					this.canvas.width = 1;
+					this.canvas.height = 1;
+					this.canvas.style.position = "absolute";
+					this.canvas.style.inset = "0";
+					this.canvas.style.width = "100%";
+					this.canvas.style.height = "100%";
+					this.canvas.style.pointerEvents = "none";
+					this.canvas.style.display = "block";
+					this.canvas.style.zIndex = "1";
+					if (this.container) this.container.appendChild(this.canvas);
+
+					ssaLog("ASS script received", {
+						bytes: subtitleScript.length,
+						preview: subtitleScript.slice(0, 500)
+					});
+					this.module = this.module ||
+						await import("./movi-player/jassub.bundle.js");
+					ssaLog("JASSUB module imported");
+					const assetURL = function (name) {
+						return new URL("movi-player/" + name, document.baseURI).href;
+					};
+					this.jassub = new this.module.default({
+						canvas: this.canvas,
+						subContent: subtitleScript,
+						fonts: fonts,
+						workerUrl: assetURL("jassub-worker.js"),
+						wasmUrl: assetURL("jassub-worker.wasm"),
+						wasmWorkerUrl: assetURL("jassub-worker-wasm.js"),
+						modernWasmUrl: assetURL("jassub-worker-modern.wasm"),
+						modernWasmWorkerUrl: assetURL("jassub-worker-modern-wasm.js"),
+						defaultFont: "liberation sans",
+						debug: debugSSA
+					});
+					await this.jassub.ready;
+					this.renderer = this.jassub.renderer;
+					ssaLog("JASSUB ready", {
+						canvasWidth: this.canvas.width,
+						canvasHeight: this.canvas.height,
+						renderer: this.renderer
+					});
+
+					const pendingPackets = this.pendingPackets;
+					this.pendingPackets = [];
+					for (const packet of pendingPackets) {
+						await this.enqueuePacket(packet);
+					}
+				}
+
+				pushPacket(packet) {
+					if (!this.renderer) {
+						this.pendingPackets.push({
+							data: new Uint8Array(packet.data),
+							timestamp: packet.timestamp,
+							duration: packet.duration
+						});
+						return;
+					}
+
+					return this.enqueuePacket(packet);
+				}
+
+				enqueuePacket(packet) {
+					this.packetChain = this.packetChain.then(async () => {
+						let data = new TextDecoder().decode(packet.data)
+							.replace(/\0/g, "")
+							.replace(/^\uFEFF/, "")
+							.trim();
+						if (/^Dialogue\s*:/i.test(data)) {
+							data = data.replace(/^Dialogue\s*:\s*/i, "0,");
+						}
+						this.packetCount += 1;
+						ssaLog("processing packet", {
+							count: this.packetCount,
+							timestamp: packet.timestamp,
+							duration: packet.duration,
+							bytes: packet.data.length,
+							hex: Array.from(packet.data.slice(0, 32))
+								.map((value) => value.toString(16).padStart(2, "0"))
+								.join(" "),
+							text: data.slice(0, 300)
+						});
+						try {
+							await this.renderer.processChunk(
+								data,
+								(packet.timestamp || 0) * 1000,
+								(packet.duration || 0) * 1000
+							);
+							if (debugSSA && typeof this.renderer.getEvents === "function") {
+								const events = await this.renderer.getEvents();
+								ssaLog("JASSUB event state", {
+									count: Array.isArray(events) ? events.length : -1,
+									events: Array.isArray(events) ? events.slice(-2) : events
+								});
+							}
+						} catch (error) {
+							ssaError("JASSUB subtitle packet failed", error);
+						}
+					});
+					return this.packetChain;
+				}
+
+				async render(mediaTime, videoWidth, videoHeight) {
+					if (!this.jassub) return;
+					await this.jassub.ready;
+					if (!this.renderer) return;
+					this.renderCount += 1;
+					this.pixelAspectRatio = this.getVideoPixelAspectRatio();
+					const displayWidth = Math.max(
+						1,
+						Math.round(videoWidth * this.pixelAspectRatio)
+					);
+					if (debugSSA && (this.renderCount <= 5 || this.renderCount % 120 === 0)) {
+						ssaLog("render", {
+							count: this.renderCount,
+							mediaTime: mediaTime,
+							videoWidth: videoWidth,
+							videoHeight: videoHeight,
+							displayWidth: displayWidth,
+							canvasWidth: this.canvas.width,
+							canvasHeight: this.canvas.height
+						});
+					}
+					await this.jassub.manualRender({
+						expectedDisplayTime: performance.now(),
+						width: displayWidth,
+						height: videoHeight,
+						mediaTime: mediaTime
+					});
+				}
+
+				setDelay(seconds) {
+					if (this.jassub) this.jassub.timeOffset = seconds;
+				}
+
+				clear() {
+					if (this.renderer) this.renderer.removeAllEvents();
+				}
+
+				destroy() {
+					ssaLog("renderer destroyed");
+					if (this.visibilityObserver) this.visibilityObserver.disconnect();
+					this.visibilityObserver = null;
+					if (this.jassub) this.jassub.destroy();
+					this.jassub = null;
+					this.renderer = null;
+					this.canvas = null;
+					this.pendingPackets = [];
+					this.packetChain = Promise.resolve();
+				}
+			}
+
+			function selectEmbeddedSSA() {
+				if (metadataOnly || !player.player) return;
+
+				const tracks = player.player.getMediaInfo().tracks || [];
+				ssaLog("available tracks", tracks.map(function (item) {
+					return {
+						id: item.id,
+						type: item.type,
+						codec: item.codec,
+						subtitleType: item.subtitleType,
+						label: item.label,
+						language: item.language
+					};
+				}));
+				const track = tracks.find(function (item) {
+					return item.type === "subtitle" &&
+						/^(ass|ssa)$/i.test(item.codec || "");
+				});
+
+				if (track) {
+					ssaLog("selecting SSA track", {
+						id: track.id,
+						codec: track.codec
+					});
+					player.player.selectSubtitleTrack(track.id).then(function (result) {
+						ssaLog("SSA track selection completed", result);
+					}).catch(function (error) {
+						ssaError("SSA track selection failed", error);
+					});
+				} else {
+					ssaLog("no ASS/SSA track found");
+				}
+			}
+
+			function selectEmbeddedSSAWhenAvailable() {
+				selectEmbeddedSSA();
+				window.setTimeout(selectEmbeddedSSA, 250);
+				window.setTimeout(selectEmbeddedSSA, 1000);
+			}
+
+			if (!videoURL) {
+				console.error("Raw player requires a video URL");
+				return;
+			}
+
+			if (!metadataOnly) {
+				ssaLog("registering custom renderer");
+				player.setSubtitleRenderer(new EmbeddedSSARenderer());
+			}
+
+			ssaLog("loading source", videoURL);
+			player.src = videoURL;
+			if (typeof player.setStableAudio === "function") {
+				player.setStableAudio(true);
+			}
+		})();
+	</script>
+</body>
+</html>

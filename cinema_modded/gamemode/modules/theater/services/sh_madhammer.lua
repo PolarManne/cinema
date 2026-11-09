@@ -83,6 +83,11 @@ local function AddQueryParameter(url, name, value)
 	return url .. separator .. name .. "=" .. EncodeQueryValue(value)
 end
 
+local function BuildRawPlayerURL(videoURL)
+	return theater.GetCinemaURL("raw-player.html") ..
+		"?video=" .. EncodeQueryValue(videoURL)
+end
+
 local function BuildPlaybackURL(baseURL, playbackPath, apiKey, userId)
 	if not isstring(playbackPath) or playbackPath == "" then
 		return nil
@@ -225,62 +230,7 @@ end
 
 if CLIENT then
 	function SERVICE:LoadProvider(Video, panel)
-		local videoData = Video:Data()
-		local html = [[
-		<html>
-		<head>
-			<meta charset="utf-8">
-			<meta name="viewport" content="width=device-width, initial-scale=1.0">
-			<script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
-		</head>
-		<body>
-			<style>
-				* { margin: 0; padding: 0; box-sizing: border-box; }
-				body {
-					margin:0px;
-					background-color:black;
-					overflow:hidden;
-				}
-				video {
-					width: 100%;
-					height: 100%;
-				}
-			</style>
-			<video id="cinema-player" autoplay controls preload="metadata"></video>
-			<script>
-				(function() {
-					const video = document.getElementById('cinema-player');
-					const source = "]] .. videoData .. [[";
-					const isHLS = /\.m3u8(\?|$)/i.test(source);
-
-					const ready = function() {
-						window.cinema_controller = video;
-						exTheater.controllerReady();
-					};
-
-					video.addEventListener('error', function(e) {
-						console.error('Video error:', e);
-					});
-
-					if (isHLS && window.Hls && Hls.isSupported()) {
-						const hls = new Hls();
-						hls.loadSource(source);
-						hls.attachMedia(video);
-						hls.once(Hls.Events.LEVEL_LOADED, ready);
-						hls.on(Hls.Events.ERROR, function(event, data) {
-							console.error('HLS error:', data && data.details ? data.details : data);
-						});
-					} else {
-						video.src = source;
-						video.addEventListener('loadedmetadata', ready);
-					}
-				})();
-			</script>
-		</body>
-		</html>
-		]]
-
-		panel:SetHTML(html)
+		panel:OpenURL(BuildRawPlayerURL(Video:Data()))
 		panel.OnDocumentReady = function(pnl)
 			self:LoadExFunctions(pnl)
 		end

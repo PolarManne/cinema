@@ -22,6 +22,44 @@ URL request
 
 The base service in `sh_base.lua` provides shared helpers. Read it and at least one existing service before implementing a new provider; provider requirements differ substantially.
 
+## Raw file playback
+
+Direct media URLs matched by the built-in URL services load
+[`public/raw-player.html`](../public/raw-player.html) instead of relying on the
+CEF tab's native video element. The page uses Movi Player for formats such as
+MKV, MP4, HLS (`.m3u8`), and Jellyfin/madhammer relay streams, then exposes
+the Movi element as
+`window.cinema_controller`.
+That preserves the existing `play`, `pause`, `seek`, `sync`, and volume bridge
+used by the theater clock.
+
+The page accepts only the media URL. Movi reads the embedded subtitle track
+and the page passes embedded ASS/SSA tracks to JASSUB for styled rendering.
+Movi's built-in subtitle renderer continues to handle other embedded subtitle
+formats. The patched Movi global bundle and its WASM runtime are kept under
+[`public/movi-player/`](../public/movi-player/) so playback does not depend on
+the CDN. JASSUB and its worker/WASM assets are also vendored there. This is
+necessary because browsers block a module Worker loaded from `esm.sh` when the
+player page itself is served from another origin. Matroska font attachments are
+exposed to JASSUB by the patched demuxer.
+
+### Rebuilding Movi on Windows
+
+Movi's `build:wasm` npm script assumes a Unix shell (`mkdir -p`), and the
+Docker-mounted `docker/build-ffmpeg.sh` script must use LF line endings. With
+Docker Desktop's `desktop-linux` context running, use:
+
+```powershell
+New-Item -ItemType Directory -Path dist\wasm -Force
+docker compose run --rm build
+npm run build:ts
+```
+
+If the container reports that `build-ffmpeg.sh` cannot execute, convert that
+file to LF before running the Docker command. Then copy
+`dist/element.global.js` and `dist/movi.wasm` into
+[`public/movi-player/`](../public/movi-player/).
+
 
 ## Request and playback flow
 

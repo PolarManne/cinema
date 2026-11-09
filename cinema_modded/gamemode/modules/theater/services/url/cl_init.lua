@@ -49,42 +49,6 @@ local PROPRIETARY_FORMATS = {
 local BASIC_FORMATS = table.Merge(table.Copy(IMAGE_FORMATS), BASIC_VIDEO_AUDIO_FORMATS)
 
 -- HTML templates optimized for different media types
-local HTML_VIDEO_PLAYER = [[
-<html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-	<style>
-		* { margin: 0; padding: 0; box-sizing: border-box; }
-		body {
-			margin:0px;
-			background-color:black;
-			overflow:hidden;
-		}
-		video {
-			width: 100%;
-			height: 100%;
-		}
-	</style>
-	<video id="cinema-player" src="{@VideoURL}" autoplay controls preload="metadata"></video>
-	<script>
-		(function() {
-			const video = document.getElementById('cinema-player');
-			video.addEventListener('loadedmetadata', function() {
-				window.cinema_controller = video;
-				exTheater.controllerReady();
-			});
-			video.addEventListener('error', function(e) {
-				console.error('Video error:', e);
-			});
-		})();
-	</script>
-</body>
-</html>
-]]
-
 local HTML_IMAGE = [[
 <html>
 <head>
@@ -111,30 +75,20 @@ local HTML_IMAGE = [[
 </html>
 ]]
 
-local HTML_METADATA = [[
-<html>
-<head><meta charset="utf-8"></head>
-<body>
-	<video id="metadata-video" src="{@VideoSrc}" preload="metadata" style="display:none;"></video>
-	<script>
-		(function() {
-			const video = document.getElementById('metadata-video');
-			video.onloadedmetadata = function() {
-				const metadata = {
-					duration: video.duration,
-					videoWidth: video.videoWidth || 0,
-					videoHeight: video.videoHeight || 0
-				};
-				console.log("METADATA:" + JSON.stringify(metadata));
-			};
-			video.onerror = function() {
-				console.log("ERROR:" + (video.error ? video.error.code : 'unknown'));
-			};
-		})();
-	</script>
-</body>
-</html>
-]]
+local function BuildRawPlayerURL(data, metadata)
+	local videoURL = data:match("^[^#]+") or data
+	local playerURL = theater.GetCinemaURL("raw-player.html")
+
+	local query = {
+		"video=" .. url2.escape(videoURL),
+	}
+
+	if metadata then
+		table.insert(query, "metadata=1")
+	end
+
+	return playerURL .. "?" .. table.concat(query, "&")
+end
 
 local function createService(name, codecSupport, formats)
 	return {
@@ -173,8 +127,7 @@ local function createService(name, codecSupport, formats)
 			if IMAGE_FORMATS[fileext] then
 				panel:SetHTML(HTML_IMAGE:Replace("{@ImageURL}", Video:Data()))
 			else
-				-- Video/audio formats use video player
-				panel:SetHTML(HTML_VIDEO_PLAYER:Replace("{@VideoURL}", Video:Data()))
+				panel:OpenURL(BuildRawPlayerURL(Video:Data()))
 				panel.OnDocumentReady = function(pnl)
 					self:LoadExFunctions(pnl)
 				end
@@ -183,7 +136,7 @@ local function createService(name, codecSupport, formats)
 
 		GetMetadata = CLIENT and function(self, data, callback)
 			local panel = self:CreateWebCrawler(callback)
-			panel:SetHTML(HTML_METADATA:Replace("{@VideoSrc}", data))
+			panel:OpenURL(BuildRawPlayerURL(data, true))
 		end or nil,
 
 		-- GetVideoInfo is attached in sv_init.lua.
@@ -192,7 +145,7 @@ end
 
 -- Create services with clear naming
 local basicService = createService("URL (Basic Media)", false, BASIC_FORMATS)
-local proprietaryService = createService("URL (Proprietary Video)", true, PROPRIETARY_FORMATS)
+local proprietaryService = createService("URL (Proprietary Video)", false, PROPRIETARY_FORMATS)
 
 -- Register all services on the client. On the server, return the service objects
 -- so sv_init.lua can register them after including this file.

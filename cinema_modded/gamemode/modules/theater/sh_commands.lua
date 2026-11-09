@@ -17,7 +17,7 @@
 ]]
 
 CreateConVar( "cinema_queue_mode", 1, { FCVAR_ARCHIVE, FCVAR_DONTRECORD, FCVAR_REPLICATED }, "1 = Upvote only (supported)\n2 = Chronological / request order (supported)\n3 = Up and down voting (not supported)" )
-CreateConVar( "cinema_url", "https://cinema.madhammer.club/", { FCVAR_NOT_CONNECTED, FCVAR_REPLICATED }, "Cinema url to load on theater screens.") -- don't edit, use server config!
+CreateConVar( "cinema_url", "https://madhammer.club/cinema/", { FCVAR_NOT_CONNECTED, FCVAR_REPLICATED }, "Cinema url to load on theater screens.") -- don't edit, use server config!
 
 if CLIENT then
 

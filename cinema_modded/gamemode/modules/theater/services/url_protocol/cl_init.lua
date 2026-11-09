@@ -47,6 +47,20 @@ local function GetProtocol(url)
 	return nil
 end
 
+local function BuildRawPlayerURL(data, metadata)
+	local videoURL = data:match("^[^#]+") or data
+	local playerURL = theater.GetCinemaURL("raw-player.html")
+	local query = {
+		"video=" .. url.escape(videoURL),
+	}
+
+	if metadata then
+		table.insert(query, "metadata=1")
+	end
+
+	return playerURL .. "?" .. table.concat(query, "&")
+end
+
 function SERVICE:Match(url)
 	if url.file and validExtensions[url.file.ext] then
 		return true
@@ -184,14 +198,7 @@ if CLIENT then
 	]])
 
 	function SERVICE:LoadProvider(Video, panel)
-		local url = Video:Data()
-		local urlParsed = ParseURL(url)
-		local protocol = GetProtocol(urlParsed) or "hls"
-
-		local html = THEATER_HTML:Replace("{@VideoSrc}", url)
-		html = html:Replace("{@Protocol}", protocol)
-
-		panel:SetHTML(html)
+		panel:OpenURL(BuildRawPlayerURL(Video:Data()))
 		panel.OnDocumentReady = function(pnl)
 			self:LoadExFunctions(pnl)
 		end
@@ -199,13 +206,7 @@ if CLIENT then
 
 	function SERVICE:GetMetadata(data, callback)
 		local panel = self:CreateWebCrawler(callback)
-		local urlParsed = ParseURL(data)
-		local protocol = GetProtocol(urlParsed) or "hls"
-
-		local html = METADATA_HTML:Replace("{@VideoSrc}", data)
-		html = html:Replace("{@Protocol}", protocol)
-
-		panel:SetHTML(html)
+		panel:OpenURL(BuildRawPlayerURL(data, true))
 	end
 
 end
