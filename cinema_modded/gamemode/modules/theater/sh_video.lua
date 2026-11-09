@@ -1,3 +1,21 @@
+--[[
+  Cinema (Fixed Edition)
+  Copyright (C) 2013–2026 Cinema authors
+
+  Originally created by PixelTail Games
+  (https://github.com/pixeltailgames/cinema)
+
+  This file is part of Cinema (Fixed Edition)
+  (https://github.com/PurrCoding/cinema)
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  See LICENSE.md in the project root for the full license text.
+]]
+
 module( "theater", package.seeall )
 
 VIDEO = {}
@@ -352,13 +370,13 @@ if SERVER then
 			-- Query info from local database
 			local results = IsVideoCacheable(self:Type()) and
 				GetVideoLog(self:Data(), self:Type()) or nil
-			if results ~= nil and istable(results) then
+			if istable(results) and istable(results[1]) then
 
-				results = results[1]
+				local result = results[1]
 
-				self._VideoTitle = results.title or "(Unknown)"
-				self._VideoDuration = tonumber(results.duration) or -1
-				self._VideoThumbnail = results.thumbnail or ""
+				self._VideoTitle = result.title or "(Unknown)"
+				self._VideoDuration = tonumber(result.duration) or -1
+				self._VideoThumbnail = result.thumbnail or ""
 
 				callback(true)
 
