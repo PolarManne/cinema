@@ -1,0 +1,11 @@
+{
+  "name": "cinema-media-proxy",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18.19.0"
+  },
+  "scripts": {
+    "start": "node server.mjs"
+  }
+}

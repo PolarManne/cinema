@@ -52,6 +52,7 @@ local function BuildRawPlayerURL(data, metadata)
 	local playerURL = theater.GetCinemaURL("raw-player.html")
 	local query = {
 		"video=" .. url.escape(videoURL),
+		"proxy=1",
 	}
 
 	if metadata then

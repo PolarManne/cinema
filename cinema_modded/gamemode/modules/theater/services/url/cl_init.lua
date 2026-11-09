@@ -81,6 +81,7 @@ local function BuildRawPlayerURL(data, metadata)
 
 	local query = {
 		"video=" .. url2.escape(videoURL),
+		"proxy=1",
 	}
 
 	if metadata then
