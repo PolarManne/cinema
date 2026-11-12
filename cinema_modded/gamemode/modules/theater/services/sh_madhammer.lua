@@ -1,17 +1,8 @@
---[[
-	This is an experimental service implementation for Jellyfin. The code is not elegant, but it works.
-	Shows and movies are currently supported, and every domain with the path “/web” is taken into account.
-	No titles are fetched, as these API queries require authentication, which is to be avoided here.
-	Please make sure that the video sources can be played without logging in and use the links with “/#/details?id=<videoid>” in them.
-]]--
-
 local JELLYFIN_VIDEO_HOST = "video.madhammer.club"
 local JELLYFIN_TV_HOST = "tv.madhammer.club"
 
-local JELLYFIN_API_KEY_VIDEO = "d3d0f4c05d5540a2822a6acaaabc6c70"
-local JELLYFIN_API_KEY_TV = "23bc7d59276448ff9b54f9f301e1eb34"
-local JELLYFIN_USER_ID_VIDEO = "da63609ce9d9467eaa0be65fb92e64aa"
-local JELLYFIN_USER_ID_TV = "7c098e85337f438cae231586a1517015"
+local JELLYFIN_API_KEY = "d3d0f4c05d5540a2822a6acaaabc6c70"
+local JELLYFIN_USER_ID = "da63609ce9d9467eaa0be65fb92e64aa"
 local JELLYFIN_THUMBNAIL_MAX_WIDTH = 1280
 
 local SERVICE = {
@@ -30,29 +21,13 @@ local function IsTVHost(host)
 	return host == JELLYFIN_TV_HOST
 end
 
-local function GetApiKeyForHost(host)
-	if IsTVHost(host) then
-		return JELLYFIN_API_KEY_TV
-	end
-
-	return JELLYFIN_API_KEY_VIDEO
-end
-
-local function GetUserIdForHost(host)
-	if IsTVHost(host) then
-		return JELLYFIN_USER_ID_TV
-	end
-
-	return JELLYFIN_USER_ID_VIDEO
-end
-
 local function BuildAuthHeader(apiKey)
 	return 'MediaBrowser Client="Cinema", Device="Chromium", DeviceId="sneedsfeedandseed", Version="1.0.0", Token="' .. apiKey .. '"'
 end
 
 local function GetJellyfinBaseURL(url)
 	local protocol = url.scheme or "https"
-	local host = url.host
+	local host = (url.host == JELLYFIN_TV_HOST) and JELLYFIN_VIDEO_HOST or url.host
 	local port = url.port and (":" .. url.port) or ""
 
 	-- Extract path up to "/web" (excluding "/web" itself)
@@ -193,33 +168,112 @@ local function GetRuntimeSeconds(itemData)
 	return ticks and ticks > 0 and ticks / 10000000 or nil
 end
 
-function SERVICE:Match(url)
-	local params = (url.fragment and url.fragment["params"] )
+local function IsItemStream(itemData)
+	if not istable(itemData) then
+		return false
+	end
 
-	return url.host and IsSupportedJellyfinHost(url.host) and (params and params["id"] and params["serverId"] )
+	if itemData.Type == "LiveTv" or itemData.Type == "TvChannel" or
+		itemData.IsLive == true or itemData.LiveTvChannelId ~= nil or
+		itemData.ChannelType ~= nil then
+		return true
+	end
+
+	if istable(itemData.MediaSources) then
+		for _, source in ipairs(itemData.MediaSources) do
+			if source.IsInfiniteStream == true or source.RequiresOpening == true then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
+local function GetURLRequestMode(url)
+	if not url then return nil end
+
+	local fragmentParams = url.fragment and url.fragment["params"]
+	if fragmentParams then
+		if fragmentParams["stream"] == "true" or fragmentParams["stream"] == "1" or
+			fragmentParams["live"] == "true" or fragmentParams["live"] == "1" then
+			return "stream"
+		elseif fragmentParams["static"] == "true" or fragmentParams["static"] == "1" then
+			return "static"
+		end
+	end
+
+	local query = istable(url.query) and url.query or nil
+	if query then
+		if query["stream"] == "true" or query["stream"] == "1" or
+			query["live"] == "true" or query["live"] == "1" then
+			return "stream"
+		elseif query["static"] == "true" or query["static"] == "1" then
+			return "static"
+		end
+	end
+
+	if url.path and url.path:match("/stream$") then
+		if query and (query["static"] == "true" or query["static"] == "1") then
+			return "static"
+		end
+		return "stream"
+	end
+
+	if IsTVHost(url.host) then
+		return "stream"
+	end
+
+	return nil
+end
+
+function SERVICE:Match(url)
+	if not url or not url.host or not IsSupportedJellyfinHost(url.host) then
+		return false
+	end
+
+	local params = (url.fragment and url.fragment["params"])
+	if params and params["id"] then
+		return true
+	end
+
+	if istable(url.query) and url.query["id"] then
+		return true
+	end
+
+	if url.path and (url.path:match("^/Videos/[^/]+") or url.path:match("^/Items/[^/]+")) then
+		return true
+	end
+
+	return false
 end
 
 function SERVICE:GetURLInfo(url)
 	if not url or not url.encoded then return false end
 
 	local baseURL = GetJellyfinBaseURL(url)
-	local params = (url.fragment and url.fragment["params"] )
+	local params = (url.fragment and url.fragment["params"])
+	local query = istable(url.query) and url.query or nil
 	local itemId
 
-	-- Extract item ID from parsed fragment table
-	if params then
+	if params and params["id"] then
 		itemId = params["id"]
+	elseif query and query["id"] then
+		itemId = query["id"]
+	elseif url.path then
+		itemId = url.path:match("/Videos/([^/?&#]+)") or url.path:match("/Items/([^/?&#]+)")
 	end
 
 	if itemId then
+		local mode = GetURLRequestMode(url)
 		local directURL
 
-		if IsTVHost(url.host) then
-			directURL = baseURL .. "/Videos/" .. itemId .. "/stream"
-			directURL = AddQueryParameter(directURL, "api_key", GetApiKeyForHost(url.host))
-			directURL = AddQueryParameter(directURL, "userId", GetUserIdForHost(url.host))
-		else
+		if mode == "stream" then
+			directURL = baseURL .. "/Videos/" .. itemId .. "/stream?stream=true"
+		elseif mode == "static" then
 			directURL = baseURL .. "/Videos/" .. itemId .. "/stream?static=true"
+		else
+			directURL = baseURL .. "/Videos/" .. itemId .. "/stream?static=true&auto=true"
 		end
 
 		return { Data = directURL }
@@ -264,142 +318,159 @@ if CLIENT then
 end
 
 function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
-	local url = url.parse(data:Data())
+	local dataString = isstring(data) and data or (data and data.Data and data:Data()) or ""
+	local url = url.parse(dataString)
 
 	if not url or not url.host then
 		return onFailure("Could not parse media URL")
 	end
 
-	if IsTVHost(url.host) then
-		local baseURL = GetJellyfinBaseURL(url)
-		local itemId = url.path and url.path:match("/Videos/([^/]+)/")
+	local baseURL = GetJellyfinBaseURL(url)
+	local itemId = url.path and (url.path:match("/Videos/([^/?&#]+)") or url.path:match("/Items/([^/?&#]+)"))
 
-		if not itemId then
-			return onFailure("Could not extract item ID for live stream")
-		end
+	if not itemId then
+		return onFailure("Could not extract item ID")
+	end
 
-		local apiKey = GetApiKeyForHost(url.host)
-		local userId = GetUserIdForHost(url.host)
-		local playbackInfoURL = baseURL .. "/Items/" .. itemId .. "/PlaybackInfo"
-		local itemInfoURL = baseURL .. "/Users/" .. userId .. "/Items/" .. itemId
-		local requestBody = util.TableToJSON({
-			UserId = userId,
-			IsPlayback = true,
-			AutoOpenLiveStream = true,
-			DeviceProfile = {
-				TranscodingProfiles = {
-					{
-						Container = "ts",
-						Type = "Video",
-						AudioCodec = "aac,mp3,mp2",
-						VideoCodec = "h264",
-						Context = "Streaming",
-						Protocol = "hls",
-						MaxAudioChannels = "2",
-						MinSegments = "1",
-						BreakOnNonKeyFrames = true
-					}
-				},
-				CodecProfiles = {
-					{
-						Type = "VideoAudio",
-						Codec = "aac",
-						Conditions = {
+	local apiKey = JELLYFIN_API_KEY
+	local userId = JELLYFIN_USER_ID
+	local itemInfoURL = baseURL .. "/Users/" .. userId .. "/Items/" .. itemId
+	local headers = {
+		["Authorization"] = BuildAuthHeader(apiKey)
+	}
+
+	HTTP({
+		url = itemInfoURL,
+		headers = headers,
+		success = function(itemCode, itemBody)
+			itemCode = tonumber(itemCode) or 0
+			if itemCode ~= 200 and itemCode ~= 0 then
+				return onFailure("Item info request failed with HTTP " .. tostring(itemCode))
+			end
+
+			local itemData = util.JSONToTable(itemBody)
+			if not itemData then
+				return onFailure("Invalid item info JSON response")
+			end
+
+			local queryString = isstring(url.query) and url.query or ""
+			local hasStream = queryString:find("stream=true", 1, true) ~= nil or queryString:find("stream=1", 1, true) ~= nil
+			local hasStatic = queryString:find("static=true", 1, true) ~= nil or queryString:find("static=1", 1, true) ~= nil
+			local hasAuto = queryString:find("auto=true", 1, true) ~= nil or queryString:find("auto=1", 1, true) ~= nil
+
+			local isStream
+			if hasStream then
+				isStream = true
+			elseif hasStatic and not hasAuto then
+				isStream = false
+			else
+				isStream = IsItemStream(itemData)
+			end
+
+			if isStream then
+				local playbackInfoURL = baseURL .. "/Items/" .. itemId .. "/PlaybackInfo"
+				local requestBody = util.TableToJSON({
+					UserId = userId,
+					IsPlayback = true,
+					AutoOpenLiveStream = true,
+					DeviceProfile = {
+						TranscodingProfiles = {
 							{
-								Condition = "Equals",
-								Property = "IsSecondaryAudio",
-								Value = "false",
-								IsRequired = false
+								Container = "ts",
+								Type = "Video",
+								AudioCodec = "aac,mp3,mp2",
+								VideoCodec = "h264",
+								Context = "Streaming",
+								Protocol = "hls",
+								MaxAudioChannels = "2",
+								MinSegments = "1",
+								BreakOnNonKeyFrames = true
+							}
+						},
+						CodecProfiles = {
+							{
+								Type = "VideoAudio",
+								Codec = "aac",
+								Conditions = {
+									{
+										Condition = "Equals",
+										Property = "IsSecondaryAudio",
+										Value = "false",
+										IsRequired = false
+									}
+								}
+							},
+							{
+								Type = "Video",
+								Codec = "h264",
+								Conditions = {
+									{
+										Condition = "NotEquals",
+										Property = "IsAnamorphic",
+										Value = "true",
+										IsRequired = false
+									},
+									{
+										Condition = "EqualsAny",
+										Property = "VideoProfile",
+										Value = "high|main|baseline|constrained baseline",
+										IsRequired = false
+									},
+									{
+										Condition = "EqualsAny",
+										Property = "VideoRangeType",
+										Value = "SDR",
+										IsRequired = false
+									},
+									{
+										Condition = "LessThanEqual",
+										Property = "VideoLevel",
+										Value = "52",
+										IsRequired = false
+									},
+									{
+										Condition = "NotEquals",
+										Property = "IsInterlaced",
+										Value = "true",
+										IsRequired = false
+									}
+								}
 							}
 						}
-					},
-					{
-						Type = "Video",
-						Codec = "h264",
-						Conditions = {
-							{
-								Condition = "NotEquals",
-								Property = "IsAnamorphic",
-								Value = "true",
-								IsRequired = false
-							},
-							{
-								Condition = "EqualsAny",
-								Property = "VideoProfile",
-								Value = "high|main|baseline|constrained baseline",
-								IsRequired = false
-							},
-							{
-								Condition = "EqualsAny",
-								Property = "VideoRangeType",
-								Value = "SDR",
-								IsRequired = false
-							},
-							{
-								Condition = "LessThanEqual",
-								Property = "VideoLevel",
-								Value = "52",
-								IsRequired = false
-							},
-							{
-								Condition = "NotEquals",
-								Property = "IsInterlaced",
-								Value = "true",
-								IsRequired = false
-							}
-						}
 					}
-				}
-			}
-		})
-
-		HTTP({
-			url = playbackInfoURL,
-			method = "POST",
-			headers = {
-				["Authorization"] = BuildAuthHeader(apiKey)
-			},
-			type = "application/json",
-			body = requestBody,
-			success = function(code, body)
-				code = tonumber(code) or 0
-				if code ~= 200 and code ~= 0 then
-					return onFailure("PlaybackInfo request failed with HTTP " .. tostring(code))
-				end
-
-				local jsonData = util.JSONToTable(body)
-				if not jsonData then
-					return onFailure("Invalid PlaybackInfo JSON response")
-				end
-
-				local mediaSources = jsonData.MediaSources
-				local mediaSource = istable(mediaSources) and mediaSources[1] or nil
-				local playbackPath = mediaSource and
-					(mediaSource.TranscodingUrl or mediaSource.DirectStreamUrl)
-
-				if not isstring(playbackPath) or playbackPath == "" then
-					return onFailure("PlaybackInfo did not return a playable URL")
-				end
-
-				local playbackURL = BuildPlaybackURL(baseURL, playbackPath, apiKey, userId)
-				if not playbackURL then
-					return onFailure("PlaybackInfo returned an invalid playable URL")
-				end
+				})
 
 				HTTP({
-					url = itemInfoURL,
+					url = playbackInfoURL,
+					method = "POST",
 					headers = {
 						["Authorization"] = BuildAuthHeader(apiKey)
 					},
-					success = function(itemCode, itemBody)
-						itemCode = tonumber(itemCode) or 0
-						if itemCode ~= 200 and itemCode ~= 0 then
-							return onFailure("Item info request failed with HTTP " .. tostring(itemCode))
+					type = "application/json",
+					body = requestBody,
+					success = function(pbCode, pbBody)
+						pbCode = tonumber(pbCode) or 0
+						if pbCode ~= 200 and pbCode ~= 0 then
+							return onFailure("PlaybackInfo request failed with HTTP " .. tostring(pbCode))
 						end
 
-						local itemData = util.JSONToTable(itemBody)
-						if not itemData then
-							return onFailure("Invalid item info JSON response")
+						local pbData = util.JSONToTable(pbBody)
+						if not pbData then
+							return onFailure("Invalid PlaybackInfo JSON response")
+						end
+
+						local mediaSources = pbData.MediaSources
+						local mediaSource = istable(mediaSources) and mediaSources[1] or nil
+						local playbackPath = mediaSource and
+							(mediaSource.TranscodingUrl or mediaSource.DirectStreamUrl)
+
+						if not isstring(playbackPath) or playbackPath == "" then
+							return onFailure("PlaybackInfo did not return a playable URL")
+						end
+
+						local playbackURL = BuildPlaybackURL(baseURL, playbackPath, apiKey, userId)
+						if not playbackURL then
+							return onFailure("PlaybackInfo returned an invalid playable URL")
 						end
 
 						local title = GetItemTitle(itemData, "Madhammer TV")
@@ -427,43 +498,16 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 						end
 					end,
 					failed = function(err)
-						onFailure("Item info request failed: " .. tostring(err))
+						onFailure("PlaybackInfo request failed: " .. tostring(err))
 					end
 				})
-			end,
-			failed = function(err)
-				onFailure("PlaybackInfo request failed: " .. tostring(err))
+				return
 			end
-		})
 
-		return
-	end
+			-- Video: Serve static file
+			local staticURL = baseURL .. "/Videos/" .. itemId .. "/stream?static=true"
+			local title = GetItemTitle(itemData, "Unknown")
 
-	local baseURL = GetJellyfinBaseURL(url)
-	local itemId = url.path and url.path:match("/Videos/([^/]+)/")
-	
-	if not itemId then
-		return onFailure("Could not extract item ID")
-	end
-	
-	local userId = GetUserIdForHost(url.host)
-	local apiURL = baseURL .. "/Users/" .. userId .. "/Items/" .. itemId
-	local apiKey = GetApiKeyForHost(url.host)
-	local headers = {
-		["Authorization"] = BuildAuthHeader(apiKey)
-	}
-	
-	HTTP({
-		url = apiURL,
-		headers = headers,
-		success = function(code, body)
-			local jsonData = util.JSONToTable(body)
-			if not jsonData then
-				return onFailure("Invalid JSON response")
-			end
-			
-			local title = GetItemTitle(jsonData, "Unknown")
-			
 			local function finish(metadata)
 				if metadata.err then
 					return onFailure(metadata.err)
@@ -471,24 +515,26 @@ function SERVICE:GetVideoInfo(data, onSuccess, onFailure)
 
 				local info = {
 					title = title,
-					duration = math.max(0, math.Round(tonumber(metadata.duration) or 0))
+					duration = math.max(0, math.Round(tonumber(metadata.duration) or 0)),
+					data = staticURL
 				}
-				local thumbnail = BuildThumbnailURL(baseURL, itemId, apiKey, jsonData)
+				local thumbnail = BuildThumbnailURL(baseURL, itemId, apiKey, itemData)
 				if thumbnail then
 					info.thumbnail = thumbnail
 				end
 				if onSuccess then pcall(onSuccess, info) end
 			end
 
-			local runtime = GetRuntimeSeconds(jsonData)
+			local runtime = GetRuntimeSeconds(itemData)
 			if runtime then
 				finish({ duration = runtime })
 			else
-				theater.FetchVideoMedata(data:GetOwner(), data, finish)
+				local owner = (istable(data) and isfunction(data.GetOwner)) and data:GetOwner() or nil
+				theater.FetchVideoMedata(owner, data, finish)
 			end
 		end,
 		failed = function(err)
-			onFailure("API request failed: " .. tostring(err))
+			onFailure("Item info request failed: " .. tostring(err))
 		end
 	})
 end
